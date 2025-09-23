@@ -112,16 +112,14 @@ body {
     align-items: center;
     justify-content: center;
     position: relative;
-    box-shadow:
-        0 2px 4px rgba(0, 0, 0, 0.1),
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1),
         inset 0 1px 2px rgba(255, 255, 255, 0.1);
     color: var(--text-secondary);
 }
 
 .pattern-pad:hover {
     transform: translateY(-1px);
-    box-shadow:
-        0 4px 8px rgba(0, 0, 0, 0.15),
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15),
         inset 0 1px 2px rgba(255, 255, 255, 0.2);
     color: var(--text-primary);
 }
@@ -130,8 +128,7 @@ body {
     background: var(--accent);
     color: white;
     border-color: var(--accent);
-    box-shadow:
-        0 0 16px rgba(255, 69, 0, 0.4),
+    box-shadow: 0 0 16px rgba(255, 69, 0, 0.4),
         inset 0 1px 2px rgba(255, 255, 255, 0.3);
     animation: midi-glow 1.5s ease-in-out infinite alternate;
 }
@@ -241,6 +238,7 @@ body {
     height: 600px;
     perspective: 1200px;
     position: relative;
+    transform-style: preserve-3d;
 }
 
 .lampy-spiral {
@@ -253,6 +251,7 @@ body {
 
 /* Large Copper Tube */
 .copper-tube-large {
+    overflow: hidden;
     position: absolute;
     left: 50%;
     top: 8%;
@@ -267,26 +266,25 @@ body {
         var(--copper-highlight) 100%
     );
     border-radius: 8px;
-    transform: translateX(-50%);
-    box-shadow:
-        inset -3px 0 6px rgba(0, 0, 0, 0.3),
-        inset 3px 0 3px rgba(255, 255, 255, 0.2),
-        0 0 30px rgba(180, 83, 9, 0.3);
+    transform: translateX(-50%) translateZ(1px);
+    transform-style: preserve-3d;
+    box-shadow: inset -3px 0 6px rgba(0, 0, 0, 0.3),
+        inset 3px 0 3px rgba(255, 255, 255, 0.2), 0 0 30px rgba(180, 83, 9, 0.3);
 }
 
-.copper-tube-large::before {
-    content: "";
-    position: absolute;
-    left: 3px;
-    top: 0;
-    width: 2px;
+.copper-tube-shine {
     height: 100%;
+    width: 2px;
     background: linear-gradient(
         180deg,
-        rgba(255, 255, 255, 0.8) 0%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0.8) 100%
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(238, 172, 125, 0.8) 25%,
+        rgba(217, 119, 6, 0.6) 50%,
+        rgba(238, 172, 125, 0.8) 75%,
+        rgba(255, 255, 255, 0.9) 100%
     );
+    left: 4px;
+    position: relative;
     border-radius: 1px;
 }
 
@@ -305,16 +303,13 @@ body {
     background: #333333;
     border: 1px solid rgba(255, 255, 255, 0.3);
     transition: all 0.2s ease;
-    box-shadow:
-        0 0 3px rgba(0, 0, 0, 0.3),
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3),
         inset 0 1px 2px rgba(255, 255, 255, 0.4);
     transform: rotateY(0deg) !important;
 }
 
 .led-light-large.active {
-    box-shadow:
-        0 0 12px currentColor,
-        0 0 24px currentColor,
+    box-shadow: 0 0 12px currentColor, 0 0 24px currentColor,
         inset 0 1px 2px rgba(255, 255, 255, 0.6);
 }
 
@@ -421,9 +416,11 @@ body {
     max-height: 450px;
     perspective: 800px;
     position: relative;
+    transform-style: preserve-3d;
 }
 
 .copper-tube-mobile {
+    overflow: hidden;
     position: absolute;
     left: 50%;
     top: 8%;
@@ -438,27 +435,26 @@ body {
         var(--copper-highlight) 100%
     );
     border-radius: 6px;
-    transform: translateX(-50%);
-    box-shadow:
-        inset -2px 0 4px rgba(0, 0, 0, 0.3),
-        inset 2px 0 2px rgba(255, 255, 255, 0.2),
-        0 0 20px rgba(180, 83, 9, 0.3);
+    transform: translateX(-50%) translateZ(1px);
+    transform-style: preserve-3d;
+    box-shadow: inset -2px 0 4px rgba(0, 0, 0, 0.3),
+        inset 2px 0 2px rgba(255, 255, 255, 0.2), 0 0 20px rgba(180, 83, 9, 0.3);
 }
 
-.copper-tube-mobile::before {
-    content: "";
-    position: absolute;
-    left: 2px;
-    top: 0;
-    width: 1px;
+.copper-tube-shine-mobile {
     height: 100%;
+    width: 2px;
     background: linear-gradient(
         180deg,
-        rgba(255, 255, 255, 0.8) 0%,
-        rgba(255, 255, 255, 0.3) 50%,
-        rgba(255, 255, 255, 0.8) 100%
+        rgba(255, 255, 255, 0.9) 0%,
+        rgba(238, 172, 125, 0.8) 25%,
+        rgba(217, 119, 6, 0.6) 50%,
+        rgba(238, 172, 125, 0.8) 75%,
+        rgba(255, 255, 255, 0.9) 100%
     );
-    border-radius: 0.5px;
+    left: 1px;
+    position: relative;
+    border-radius: 1px;
 }
 
 .led-mobile {
@@ -475,16 +471,13 @@ body {
     background: #333333;
     border: 0.5px solid rgba(255, 255, 255, 0.3);
     transition: all 0.2s ease;
-    box-shadow:
-        0 0 2px rgba(0, 0, 0, 0.3),
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.3),
         inset 0 0.5px 1px rgba(255, 255, 255, 0.4);
     transform: rotateY(0deg) !important;
 }
 
 .led-light-mobile.active {
-    box-shadow:
-        0 0 8px currentColor,
-        0 0 16px currentColor,
+    box-shadow: 0 0 8px currentColor, 0 0 16px currentColor,
         inset 0 0.5px 1px rgba(255, 255, 255, 0.6);
 }
 

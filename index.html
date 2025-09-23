@@ -234,7 +234,9 @@
                 <div class="flex-1 flex items-center justify-center">
                     <div class="lampy-container-large">
                         <!-- Copper Tube -->
-                        <div class="copper-tube-large opacity-40"></div>
+                        <div class="copper-tube-large">
+                            <div class="copper-tube-shine"></div>
+                        </div>
                         <div class="lampy-spiral animate-spiral">
                             <!-- LED Spiral -->
                             <div
@@ -296,7 +298,9 @@
             <div class="flex-1 simulator-panel-mobile">
                 <div class="lampy-container-mobile">
                     <!-- Copper Tube -->
-                    <div class="copper-tube-mobile"></div>
+                    <div class="copper-tube-mobile">
+                        <div class="copper-tube-shine-mobile"></div>
+                    </div>
                     <div class="lampy-spiral animate-spiral">
                         <!-- LED Spiral -->
                         <div
@@ -305,11 +309,13 @@
                             class="led-mobile"
                             :style="getLEDPositionMobile(i)"
                         >
-                            <div
-                                class="led-light-mobile"
-                                :style="getLEDColor(i)"
-                                :class="{ 'animate-pulse-led': getLEDIntensity(i) > 0.7 }"
-                            ></div>
+                            <div class="animate-spiral-reverse h-full">
+                                <div
+                                    class="led-light-mobile"
+                                    :style="getLEDColor(i)"
+                                    :class="{ 'animate-pulse-led': getLEDIntensity(i) > 0.7 }"
+                                ></div>
+                            </div>
                         </div>
                     </div>
                 </div>

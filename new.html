@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Rotating Helical LED Cylinder</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                background: #111;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                perspective: 1000px;
+                font-family: Arial, sans-serif;
+            }
+
+            .container {
+                position: relative;
+                transform-style: preserve-3d;
+            }
+
+            .cylinder {
+                position: relative;
+                width: 200px;
+                height: 300px;
+                transform-style: preserve-3d;
+                animation: rotate 8s linear infinite;
+            }
+
+            .cylinder-body {
+                position: absolute;
+                width: 200px;
+                height: 300px;
+                background: linear-gradient(135deg, #cd7f32, #b8860b, #8b4513);
+                border-radius: 100px;
+                box-shadow: inset -20px 0 40px rgba(0, 0, 0, 0.3),
+                    inset 20px 0 40px rgba(255, 255, 255, 0.1),
+                    0 0 50px rgba(205, 127, 50, 0.3);
+                transform: translateZ(0);
+                animation: rotateReverse 8s linear infinite;
+            }
+
+            .led-case {
+                position: absolute;
+                transform-style: preserve-3d;
+            }
+
+            .led {
+                position: relative;
+                width: 8px;
+                height: 8px;
+                background: radial-gradient(circle, #ff4444, #cc0000);
+                border-radius: 50%;
+                box-shadow: 0 0 10px #ff4444, 0 0 20px #ff4444, 0 0 30px #ff4444;
+                transform-style: preserve-3d;
+                animation: rotateReverse 8s linear infinite;
+            }
+
+            .led.on {
+                background: radial-gradient(circle, #44ff44, #00cc00);
+                box-shadow: 0 0 10px #44ff44, 0 0 20px #44ff44, 0 0 30px #44ff44;
+            }
+
+            /* .led-case {
+            } */
+
+            @keyframes rotate {
+                from {
+                    transform: rotateY(0deg);
+                }
+                to {
+                    transform: rotateY(360deg);
+                }
+            }
+
+            @keyframes rotateReverse {
+                from {
+                    transform: rotateY(360deg);
+                }
+                to {
+                    transform: rotateY(0deg);
+                }
+            }
+
+            @keyframes pulse {
+                from {
+                    box-shadow: 0 0 10px #44ff44, 0 0 20px #44ff44,
+                        0 0 30px #44ff44;
+                }
+                to {
+                    box-shadow: 0 0 15px #44ff44, 0 0 25px #44ff44,
+                        0 0 40px #44ff44;
+                }
+            }
+
+            .controls {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                color: #fff;
+                font-size: 14px;
+            }
+
+            .info {
+                position: absolute;
+                bottom: 20px;
+                left: 20px;
+                color: #888;
+                font-size: 12px;
+                max-width: 300px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="cylinder">
+                <!-- Copper cylinder body -->
+                <div class="cylinder-body"></div>
+
+                <!-- Generate LEDs in helical pattern -->
+                <!-- We'll create multiple turns of the helix -->
+            </div>
+        </div>
+
+        <div class="controls">
+            <div>🔴 Red LEDs: Off</div>
+            <div>🟢 Green LEDs: On</div>
+            <div>Rotating automatically...</div>
+        </div>
+
+        <div class="info">
+            Pure CSS/HTML rotating helical LED array around a copper cylinder.
+            LEDs automatically hide when on the back side due to CSS 3D
+            transforms. Green LEDs pulse to show they're "on".
+        </div>
+
+        <script>
+            // Generate LEDs in helical pattern using CSS
+            const cylinder = document.querySelector(".cylinder");
+            const numTurns = 4; // Number of helical turns
+            const ledsPerTurn = 12; // LEDs per complete turn
+            const totalLeds = numTurns * ledsPerTurn;
+            const cylinderRadius = 100; // Radius in pixels
+            const cylinderHeight = 300; // Height in pixels
+
+            // Create LED elements
+            for (let i = 0; i < totalLeds; i++) {
+                // Create LED case container
+                const ledCase = document.createElement("div");
+                ledCase.className = "led-case";
+
+                // Create LED element
+                const led = document.createElement("div");
+                led.className = "led";
+
+                // Calculate helical position
+                const angle = (i / ledsPerTurn) * 360; // Degrees
+                const height = (i / totalLeds) * cylinderHeight; // Vertical position
+                const x = Math.cos((angle * Math.PI) / 180) * cylinderRadius;
+                const z = Math.sin((angle * Math.PI) / 180) * cylinderRadius;
+
+                // Randomly make some LEDs "on" (green)
+                if (Math.random() > 0.6) {
+                    led.classList.add("on");
+                }
+
+                // Position the LED case
+                ledCase.style.transform = `translate3d(${x + 96}px, ${
+                    height + 4
+                }px, ${z}px)`;
+
+                // Add LED to case and case to cylinder
+                ledCase.appendChild(led);
+                cylinder.appendChild(ledCase);
+            }
+        </script>
+    </body>
+</html>

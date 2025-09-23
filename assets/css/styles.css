@@ -1,0 +1,276 @@
+/* 1. Use a more-intuitive box-sizing model */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* 2. Remove default margin */
+* {
+  margin: 0;
+}
+
+body {
+  /* 3. Add accessible line-height */
+  line-height: 1.5;
+  /* 4. Improve text rendering */
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 5. Improve media defaults */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* 6. Inherit fonts for form controls */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* 7. Avoid text overflows */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  overflow-wrap: break-word;
+}
+
+/* 8. Improve line wrapping */
+p {
+  text-wrap: pretty;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  text-wrap: balance;
+}
+
+/*
+    9. Create a root stacking context
+  */
+#root,
+#__next {
+  isolation: isolate;
+}
+
+html {
+  height: 100%;
+  color: white;
+  font-family: AxLLCircular, Helvetica, Arial, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  overflow: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+h2 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  text-shadow: 0 2px 0 rgba(0, 0, 0, 0.05), 0 3px 0 rgba(0, 0, 0, 0.02);
+  text-align: center;
+  font-weight: 500;
+}
+
+@keyframes cardAnimation {
+  60% {
+    background-size: 100vmax 100vmax;
+    background-position-x: 60%;
+    background-position-y: 60%;
+  }
+}
+@keyframes cardGradient {
+  0% {
+    background-position: 0% 10%;
+  }
+  50% {
+    background-position: 100% 91%;
+  }
+  100% {
+    background-position: 0% 10%;
+  }
+}
+.fade {
+  visibility: hidden;
+  opacity: 0;
+  transition: 2s ease;
+}
+.fade.in {
+  visibility: visible;
+  opacity: 1;
+}
+
+.card-wrapper {
+  box-sizing: border-box;
+  position: relative;
+  color: white;
+  background-color: transparent;
+  height: 100vh;
+  width: 100vw;
+  box-sizing: border-box;
+  padding: 24px;
+  display: grid;
+  margin-bottom: 24px;
+  grid-template-rows: 1fr auto;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  box-shadow: 0 0px 8px rgba(0, 0, 0, 0.12), 0 2px 16px rgba(0, 0, 0, 0.12), 0 4px 20px rgba(0, 0, 0, 0.12), 0 12px 28px rgba(0, 0, 0, 0.12);
+}
+.card-wrapper.digital {
+  background-size: 100vw 100vh;
+  animation-name: cardAnimation;
+  animation-duration: 10s;
+  animation-iteration-count: infinite;
+  transform: translateZ(0);
+  color: black;
+  position: relative;
+  color: #1a1d21;
+}
+.card-wrapper.digital img {
+  filter: drop-shadow(0px 1px 0px rgba(255, 255, 255, 0.3)) drop-shadow(0 2px 16px rgba(0, 0, 0, 0.12)) drop-shadow(0px 0px 12px rgb(255, 255, 255));
+}
+.card-wrapper.digital:before {
+  content: "";
+  width: 100%;
+  height: 100%;
+  box-shadow: 0 -1px 0 0 rgba(255, 255, 255, 0.9), 0 1px 0 0 rgba(0, 0, 0, 0.2);
+  position: absolute;
+  z-index: -1;
+  border-radius: 10px;
+}
+.card-wrapper.digital:after {
+  content: "";
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  border-radius: 10px;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.02) 30%, rgba(255, 255, 255, 0.25) 40%, rgba(255, 255, 255, 0.08) 40%), linear-gradient(0deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.3));
+  background-size: 150% 150%;
+  animation: cardGradient 45s ease-in-out infinite;
+  transform: translateZ(0);
+  position: absolute;
+}
+.card-wrapper.digital.one {
+  background-image: url("../images/snowy-mint.jpg");
+}
+.card-wrapper.digital.two {
+  background-image: url("../images/egg-sour.jpg");
+}
+.card-wrapper.digital.three {
+  background-image: url("../images/columbia-blue.jpg");
+}
+.card-wrapper.digital.four {
+  background-image: url("../images/my-pink.jpg");
+}
+.card-wrapper.digital.five {
+  background-image: url("../images/buttercup.jpg");
+}
+.card-wrapper.digital.six {
+  background-image: url("../images/cream-whisper.jpg");
+}
+.card-wrapper.digital.seven {
+  background-image: url("../images/honeysuckle.jpg");
+}
+.card-wrapper.digital.eight {
+  background-image: url("../images/tonys-pink.jpg");
+}
+
+.card {
+  position: absolute;
+  top: calc(74.5% - 4.2em);
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+  font-size: 4.2vw;
+  font-weight: 300;
+  color: #000;
+}
+
+.button {
+  position: relative;
+  top: 0;
+  left: 0;
+  opacity: 0.5;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.4em;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.patterns {
+  top: calc(64.5% - 4.2em);
+}
+.patterns .patterns-wrapper {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: 1fr;
+  grid-column-gap: 3px;
+  padding: 0 2em;
+}
+.patterns .patterns-wrapper .pattern {
+  position: relative;
+  background-color: rgba(0, 0, 0, 0.075);
+  text-align: center;
+  padding: 20px 10px;
+  border-radius: 10px;
+  overflow: hidden;
+  height: auto;
+  transition: 200ms ease-in-out;
+}
+.patterns .patterns-wrapper .pattern:hover {
+  cursor: pointer;
+  background-color: rgba(0, 0, 0, 0.175);
+  transition: 200ms ease-out;
+  transform: scale(1.15);
+}
+.patterns .patterns-wrapper .pattern:hover p {
+  transition: 200ms ease-out;
+  color: #fff;
+}
+.patterns .patterns-wrapper .pattern p {
+  transition: 200ms ease-out;
+  position: absolute;
+  bottom: 10%;
+  right: 10%;
+  font-size: 0.35em;
+  font-weight: 200;
+  text-transform: uppercase;
+  text-align: center;
+}/*# sourceMappingURL=styles.css.map */

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Meet Lampy - Your friendly digital assistant">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script> <!-- Ensure this is loaded first -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/ldrs/dist/auto/mirage.js"></script>
+    <script src="https://kit.fontawesome.com/e0c6d65845.js" crossorigin="anonymous"></script>
+    <title>Lampy</title>
+</head>
+<body>
+    <div id="app">
+        <main>
+            <div class="wrapper">
+                <div class="card-wrapper digital eight">
+                    <div class="patterns-wrapper" style="display: none;">
+                        <div class="pattern">
+                            <a href="#"><i class="fa-light fa-pencil"></i></a>
+                            <img src="https://gifdb.com/images/thumbnail/rainbow-color-gradient-ball-acpoz3vq9ji0i3ev.gif" />
+                            <h2>Rainbow</h2>
+                        </div>
+                    </div>
+                    <div class="card fade hello" :class="{ 'in': currentState === states.HELLO }">
+                        <p>{{ greeting }}</p>
+                        <button @click="continueClick(states.INTRO)" class="button">
+                            Continue
+                        </button>
+                    </div>
+                    <div class="card fade intro" :class="{ 'in': currentState === states.INTRO }">
+                        <p>{{ nextLine }}</p>
+                        <button @click="continueClick(states.ADD_PATTERN)" class="button">
+                            Continue
+                        </button>
+                    </div>
+                    <div class="card fade patterns" :class="{ 'in': currentState === states.ADD_PATTERN }">
+                        <p>Choose a pattern.</p>
+                        <div class="patterns-wrapper">
+                            <div class="pattern" v-for="pattern in patterns" :key="pattern.name">
+                                
+                               <p>{{ pattern.name }}</p>
+                           </div>
+                        </div>
+                   </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="assets/js/app.js"></script> <!-- Ensure this is loaded after Vue.js -->
+</body>
+</html>

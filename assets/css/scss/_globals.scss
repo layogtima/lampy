@@ -1,0 +1,35 @@
+$background-color: #222;
+$text-color: white;
+$card-background: rgb(42, 41, 45);
+$card-shadow:
+  0 0px 8px rgb(0 0 0 / 12%),
+  0 2px 16px rgb(0 0 0 / 12%),
+  0 4px 20px rgb(0 0 0 / 12%),
+  0 12px 28px rgb(0 0 0 / 12%);
+
+html {
+  height: 100%;
+  color: $text-color;
+  font-family: AxLLCircular, Helvetica, Arial, sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  overflow: hidden;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+  }
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Lampy Control</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 0 20px;
+        text-align: center;
+        background: #1a1a1a;
+        color: white;
+      }
+      .controls {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 20px 0;
+      }
+      button {
+        background-color: #2a2a2a;
+        border: none;
+        color: white;
+        padding: 15px 32px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 8px;
+        position: relative;
+        overflow: hidden;
+        height: 120px;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      }
+      .state-buttons {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 10px;
+        margin: 20px 0;
+      }
+      .current {
+        outline: 3px solid #45a049;
+      }
+      .mode-name {
+        font-size: 24px;
+        margin: 20px 0;
+        text-transform: uppercase;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+      canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+      }
+      button::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.2),
+          rgba(0, 0, 0, 0.4)
+        );
+        z-index: 1;
+      }
+      button span {
+        position: relative;
+        z-index: 2;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        font-weight: 500;
+        font-size: 16px;
+        display: block;
+        margin-top: 40px;
+        text-transform: uppercase;
+        letter-spacing: 1.4px;
+      }
+      .controls button {
+        height: auto;
+        padding: 15px 32px;
+        background: #4d4d4d;
+      }
+      .controls button:hover {
+        background: #3a3a3a;
+      }
+    </style>
+    <script>
+      // Utility functions
+      function interpolateColor(color1, color2, factor) {
+        const r1 = (color1 >> 16) & 0xff;
+        const g1 = (color1 >> 8) & 0xff;
+        const b1 = color1 & 0xff;
+        const r2 = (color2 >> 16) & 0xff;
+        const g2 = (color2 >> 8) & 0xff;
+        const b2 = color2 & 0xff;
+        const r = Math.round(r1 + (r2 - r1) * factor);
+        const g = Math.round(g1 + (g2 - g1) * factor);
+        const b = Math.round(b1 + (b2 - b1) * factor);
+        return (r << 16) | (g << 8) | b;
+      }
+
+      function wheel(pos, color1, color2, color3) {
+        pos = 255 - pos;
+        if (pos < 85) {
+          return interpolateColor(color3, color1, (pos * 3) / 255);
+        }
+        if (pos < 170) {
+          pos -= 85;
+          return interpolateColor(color1, color2, (pos * 3) / 255);
+        }
+        pos -= 170;
+        return interpolateColor(color2, color3, (pos * 3) / 255);
+      }
+
+      // Pattern implementations
+      class Pattern {
+        constructor(canvas) {
+          this.canvas = canvas;
+          this.ctx = canvas.getContext("2d");
+          this.ledCount = 72;
+          this.pixelSize = canvas.width / this.ledCount;
+          this.cycles = 0;
+        }
+
+        setPixel(i, color) {
+          const r = (color >> 16) & 0xff;
+          const g = (color >> 8) & 0xff;
+          const b = color & 0xff;
+          this.ctx.fillStyle = `rgb(${r},${g},${b})`;
+          this.ctx.fillRect(
+            i * this.pixelSize,
+            0,
+            this.pixelSize,
+            this.canvas.height
+          );
+        }
+
+        clear() {
+          this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
+      }
+
+      class Rainbow extends Pattern {
+        draw() {
+          const color1 = 0xff0000; // Red
+          const color2 = 0x00ff00; // Green
+          const color3 = 0x0000ff; // Blue
+
+          for (let i = 0; i < this.ledCount; i++) {
+            const color = wheel(
+              ((i * 256) / this.ledCount + this.cycles) & 255,
+              color1,
+              color2,
+              color3
+            );
+            this.setPixel(i, color);
+          }
+          this.cycles = (this.cycles + 1) % (256 * 5);
+        }
+      }
+
+      class Fire extends Pattern {
+        constructor(canvas) {
+          super(canvas);
+          this.heat = new Array(this.ledCount).fill(0);
+        }
+
+        draw() {
+          // Cool down every pixel
+          for (let i = 0; i < this.ledCount; i++) {
+            const cooldown = Math.random() * ((10 * 10) / this.ledCount + 2);
+            this.heat[i] = Math.max(0, this.heat[i] - cooldown);
+          }
+
+          // Heat rises
+          for (let i = this.ledCount - 1; i >= 2; i--) {
+            this.heat[i] =
+              (this.heat[i - 1] + this.heat[i - 2] + this.heat[i - 2]) / 3;
+          }
+
+          // Random sparks
+          if (Math.random() * 255 < 50) {
+            const y = Math.floor(Math.random() * 7);
+            this.heat[y] = Math.min(
+              255,
+              this.heat[y] + Math.random() * (160 - 255) + 255
+            );
+          }
+
+          // Convert heat to colors
+          for (let i = 0; i < this.ledCount; i++) {
+            const temp = Math.round((this.heat[i] / 255.0) * 191);
+            let color;
+            if (temp > 0x80) {
+              color = 0xffffff;
+            } else if (temp > 0x40) {
+              color = 0xff6600;
+            } else {
+              color = 0xff0000;
+            }
+            this.setPixel(i, color);
+          }
+        }
+      }
+
+      class Stars extends Pattern {
+        constructor(canvas) {
+          super(canvas);
+          this.stars = Array(5)
+            .fill(0)
+            .map(() => ({
+              x: Math.random() * this.ledCount,
+              speed: 0.3 + Math.random() * 0.5,
+              brightness: Math.random(),
+            }));
+          this.background = 0x1a0033; // Dark purple
+        }
+
+        draw() {
+          // Fill background
+          for (let i = 0; i < this.ledCount; i++) {
+            this.setPixel(i, this.background);
+          }
+
+          // Update and draw stars
+          for (let star of this.stars) {
+            star.x -= star.speed;
+            if (star.x < 0) {
+              star.x = this.ledCount;
+              star.speed = 0.3 + Math.random() * 0.5;
+              star.brightness = Math.random();
+            }
+
+            // Draw star with trail
+            const pos = Math.floor(star.x);
+            if (pos < this.ledCount) {
+              const color = interpolateColor(
+                this.background,
+                0xff00ff,
+                star.brightness
+              );
+              this.setPixel(pos, color);
+              if (pos + 1 < this.ledCount) {
+                this.setPixel(
+                  pos + 1,
+                  interpolateColor(this.background, color, 0.5)
+                );
+              }
+            }
+          }
+        }
+      }
+
+      class Firefly extends Pattern {
+        constructor(canvas) {
+          super(canvas);
+          this.fireflies = Array(3)
+            .fill(0)
+            .map(() => ({
+              x: Math.random() * this.ledCount,
+              speed: 0.2 + Math.random() * 0.3,
+              phase: Math.random() * Math.PI * 2,
+            }));
+        }
+
+        draw() {
+          // Clear with very dark green
+          for (let i = 0; i < this.ledCount; i++) {
+            this.setPixel(i, 0x001100);
+          }
+
+          this.cycles += 0.05;
+
+          for (let fly of this.fireflies) {
+            fly.x += fly.speed;
+            if (fly.x >= this.ledCount) {
+              fly.x = 0;
+              fly.speed = 0.2 + Math.random() * 0.3;
+            }
+
+            const brightness = (Math.sin(this.cycles + fly.phase) + 1) / 2;
+            const pos = Math.floor(fly.x);
+            const color = interpolateColor(0x001100, 0x88ff00, brightness);
+
+            if (pos < this.ledCount) {
+              this.setPixel(pos, color);
+              // Add glow effect
+              if (pos > 0)
+                this.setPixel(pos - 1, interpolateColor(0x001100, color, 0.5));
+              if (pos < this.ledCount - 1)
+                this.setPixel(pos + 1, interpolateColor(0x001100, color, 0.5));
+            }
+          }
+        }
+      }
+
+      class Water extends Pattern {
+        constructor(canvas) {
+          super(canvas);
+          this.waves = Array(3)
+            .fill(0)
+            .map((_, i) => ({
+              offset: i * ((Math.PI * 2) / 3),
+              speed: 0.05 + Math.random() * 0.03,
+            }));
+        }
+
+        draw() {
+          for (let i = 0; i < this.ledCount; i++) {
+            let value = 0;
+            for (let wave of this.waves) {
+              value += Math.sin(
+                this.cycles * wave.speed + i * 0.2 + wave.offset
+              );
+            }
+            value = value / this.waves.length;
+            value = (value + 1) / 2; // Normalize to 0-1
+
+            const color = interpolateColor(0x000066, 0x0099ff, value);
+            this.setPixel(i, color);
+          }
+          this.cycles++;
+        }
+      }
+
+      class Kelp extends Pattern {
+        constructor(canvas) {
+          super(canvas);
+          this.kelps = Array(5)
+            .fill(0)
+            .map(() => ({
+              pos: Math.floor(Math.random() * this.ledCount),
+              height: 5 + Math.floor(Math.random() * 5),
+              phase: Math.random() * Math.PI * 2,
+            }));
+        }
+
+        draw() {
+          // Dark water background
+          for (let i = 0; i < this.ledCount; i++) {
+            this.setPixel(i, 0x000033);
+          }
+
+          this.cycles += 0.1;
+
+          for (let kelp of this.kelps) {
+            const wave = Math.sin(this.cycles + kelp.phase) * 2;
+            for (let h = 0; h < kelp.height; h++) {
+              const pos = kelp.pos + Math.floor(wave * (h / kelp.height));
+              if (pos >= 0 && pos < this.ledCount) {
+                const color = interpolateColor(
+                  0x00ff00,
+                  0x33ff33,
+                  h / kelp.height
+                );
+                this.setPixel(pos, color);
+              }
+            }
+          }
+        }
+      }
+
+      class Aster extends Pattern {
+        draw() {
+          const baseColor = wheel(
+            this.cycles & 255,
+            0xecc202,
+            0x551893,
+            0x290849
+          );
+
+          for (let i = 0; i < this.ledCount; i++) {
+            const offset = Math.sin(i * 0.2 + this.cycles * 0.1) * 20;
+            const color = wheel(
+              (offset + this.cycles) & 255,
+              0xecc202,
+              0x551893,
+              0x290849
+            );
+            this.setPixel(i, color);
+          }
+          this.cycles = (this.cycles + 1) % 256;
+        }
+      }
+
+      class Mandarin extends Pattern {
+        constructor(canvas) {
+          super(canvas);
+          this.segments = Array(8)
+            .fill(0)
+            .map((_, i) => ({
+              pos: i * (this.ledCount / 8),
+              phase: Math.random() * Math.PI * 2,
+            }));
+        }
+
+        draw() {
+          this.cycles += 0.1;
+
+          for (let i = 0; i < this.ledCount; i++) {
+            let nearest = this.segments.reduce((acc, seg) => {
+              const dist = Math.abs(i - seg.pos);
+              const value = Math.sin(this.cycles + seg.phase) * 0.5 + 0.5;
+              return Math.max(acc, value / (1 + dist * 0.3));
+            }, 0);
+
+            const color = interpolateColor(0x067333, 0xd13528, nearest);
+            this.setPixel(i, color);
+          }
+        }
+      }
+
+      // Initialize patterns for each button
+      function initPatterns() {
+        document.querySelectorAll("button").forEach((button) => {
+          if (!button.dataset.pattern) return;
+
+          const canvas = document.createElement("canvas");
+          canvas.width = 200;
+          canvas.height = 60;
+          button.appendChild(canvas);
+
+          let pattern;
+          switch (button.dataset.pattern) {
+            case "rainbow":
+              pattern = new Rainbow(canvas);
+              break;
+            case "fire":
+              pattern = new Fire(canvas);
+              break;
+            case "stars":
+              pattern = new Stars(canvas);
+              break;
+            case "firefly":
+              pattern = new Firefly(canvas);
+              break;
+            case "water":
+              pattern = new Water(canvas);
+              break;
+            case "kelp":
+              pattern = new Kelp(canvas);
+              break;
+            case "aster":
+              pattern = new Aster(canvas);
+              break;
+            case "mandarin":
+              pattern = new Mandarin(canvas);
+              break;
+          }
+
+          if (pattern) {
+            setInterval(() => {
+              pattern.clear();
+              pattern.draw();
+            }, 50);
+          }
+        });
+      }
+
+      // Define the patterns and their names
+      const patterns = [
+        { id: "fire", name: "Cozy Fire" },
+        { id: "stars", name: "Purple Shooting Stars" },
+        { id: "rainbow", name: "Rainbow Magic" },
+        { id: "firefly", name: "Gentle Fireflies" },
+        { id: "aster", name: "Aster" },
+        { id: "water", name: "Ocean Waves" },
+        { id: "kelp", name: "Radioactive Kelp" },
+        { id: "mandarin", name: "Mandarin Orange" },
+      ];
+
+      // Generate buttons
+      function generateButtons() {
+        const container = document.querySelector(".state-buttons");
+        patterns.forEach((pattern, index) => {
+          const button = document.createElement("button");
+          button.dataset.pattern = pattern.id;
+          button.onclick = () => (window.location.href = `/set?state=${index}`);
+
+          const span = document.createElement("span");
+          span.textContent = pattern.name;
+          button.appendChild(span);
+
+          container.appendChild(button);
+        });
+      }
+
+      // Initialize everything when the page loads
+      window.onload = () => {
+        generateButtons();
+        initPatterns();
+      };
+    </script>
+  </head>
+  <body>
+    <h1>Lampy Control</h1>
+    <div class="mode-name">Current Mode: Cozy Fire</div>
+    <div class="controls">
+      <button onclick="window.location.href='/prev'">Previous</button>
+      <button onclick="window.location.href='/next'">Next</button>
+    </div>
+    <div class="state-buttons"></div>
+  </body>
+</html>

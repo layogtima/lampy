@@ -19,14 +19,16 @@
 #include <WiFi.h>              // This helps us connect to WiFi
 #include <WebServer.h>         // This helps us create a web server
 #include <SPIFFS.h>            // This helps us store files on the ESP32
+#include <WiFiManager.h>       // This helps us configure WiFi dynamically
+#include <ESPmDNS.h>           // This helps us use lampy.local instead of IP address
 
 // ===== WIFI CONFIGURATION =====
-// TODO: Replace with your WiFi credentials
-const char* ssid = "@manjusstudio";     // Replace with your WiFi network name
-const char* password = "wifi2020!"; // Replace with your WiFi password
+// WiFi credentials are now configured dynamically via WiFiManager
+// No need for hardcoded credentials!
 
 // ===== WEB SERVER =====
 WebServer server(80);  // Create web server on port 80
+WiFiManager wifiManager;  // Create WiFiManager instance
 
 // Let's list all the cool things Lampy can do (like a table of contents):
 void switchMode();              // Changes between different light patterns
@@ -38,6 +40,7 @@ void handleSwitchMode();        // Handles mode switching via web
 void handleGetStatus();         // Returns current status as JSON
 void handleUpdate();            // Handles real-time parameter updates
 void handleDiscover();          // Returns device capabilities
+void handleWiFiReset();         // Handles WiFi credential reset
 void handleFileRequest();       // Serves static files from SPIFFS
 void handleUploadPage();        // Shows file upload interface
 void handleFileUpload();        // Handles file uploads to SPIFFS
@@ -106,6 +109,8 @@ void setup() {
 void loop() {
   // Handle web server requests
   server.handleClient();
+
+  // Note: ESP32-C3 mDNS doesn't need manual update() calls
 
   // This is Lampy's brain! It runs over and over again to create patterns.
   // Each 'state' is a different light pattern:
@@ -638,25 +643,55 @@ void matrix(int dropSpeed, int fadeSpeed, int newDropChance) {
 
 // ===== WIFI SETUP =====
 void setupWiFi() {
-  Serial.println("Connecting to WiFi...");
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
+  Serial.println("Setting up WiFi with WiFiManager...");
 
-  int attempts = 0;
-  while (WiFi.status() != WL_CONNECTED && attempts < 20) {
-    delay(500);
-    Serial.print(".");
-    attempts++;
+  // Set WiFi mode to station
+  WiFi.mode(WIFI_STA);
+
+  // Set hostname so it appears as "Lampy" in router admin panels
+  WiFi.setHostname("Lampy");
+
+  // Customize WiFiManager settings
+  wifiManager.setConfigPortalTimeout(180); // 3 minute timeout for config portal
+  wifiManager.setAPStaticIPConfig(IPAddress(192,168,4,1), IPAddress(192,168,4,1), IPAddress(255,255,255,0));
+
+  // Custom portal page title and device name
+  wifiManager.setTitle("Lampy WiFi Setup");
+  wifiManager.setHostname("lampy");
+
+  // Try to connect with saved credentials, or start config portal
+  if (!wifiManager.autoConnect("Lampy-Setup")) {
+    Serial.println("Failed to connect to WiFi and hit timeout");
+    // Reset and try again, or put device to sleep
+    ESP.restart();
+    delay(1000);
   }
 
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("");
-    Serial.println("WiFi connected!");
-    Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
+  // If we get here, WiFi is connected
+  Serial.println("");
+  Serial.println("WiFi connected successfully!");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.print("Connected to: ");
+  Serial.println(WiFi.SSID());
+
+  // Start mDNS service so users can access via lampy.local
+  Serial.println("Starting mDNS service...");
+  if (MDNS.begin("lampy")) {
+    Serial.println("✓ mDNS responder started successfully!");
+    Serial.println("✓ Access Lampy at: http://lampy.local");
+
+    // Add HTTP service announcement
+    MDNS.addService("http", "tcp", 80);
+    Serial.println("✓ HTTP service announced on mDNS");
+
+    // Add additional service info
+    MDNS.addServiceTxt("http", "tcp", "device", "Lampy LED Controller");
+    MDNS.addServiceTxt("http", "tcp", "version", "2.0");
+    Serial.println("✓ mDNS service details added");
   } else {
-    Serial.println("");
-    Serial.println("WiFi connection failed!");
+    Serial.println("✗ ERROR: Failed to start mDNS service!");
+    Serial.println("  Fallback: Use IP address directly");
   }
 }
 
@@ -677,6 +712,7 @@ void setupWebServer() {
   });
   server.on("/api/update", HTTP_POST, handleUpdate);
   server.on("/api/discover", HTTP_GET, handleDiscover);
+  server.on("/api/wifi-reset", HTTP_POST, handleWiFiReset);
 
   // File upload endpoints
   server.on("/upload", HTTP_GET, handleUploadPage);
@@ -1221,4 +1257,21 @@ void setDefaultColorsForMode(int mode) {
   }
 
   Serial.println("Set default colors for mode " + String(mode));
+}
+
+// ===== WIFI RESET HANDLER =====
+void handleWiFiReset() {
+  Serial.println("WiFi reset requested via API");
+
+  // Clear saved WiFi credentials
+  wifiManager.resetSettings();
+
+  // Send success response
+  server.send(200, "application/json", "{\"success\":true,\"message\":\"WiFi credentials cleared. Device will restart and enter setup mode.\"}");
+
+  // Small delay to ensure response is sent
+  delay(1000);
+
+  // Restart the device to enter setup mode
+  ESP.restart();
 }

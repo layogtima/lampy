@@ -42,6 +42,9 @@ void handleFileRequest();       // Serves static files from SPIFFS
 void handleUploadPage();        // Shows file upload interface
 void handleFileUpload();        // Handles file uploads to SPIFFS
 String getContentType(String filename); // Gets MIME type for files
+uint32_t hexStringToColor(String hexStr); // Converts hex string to color
+void updatePatternColors(String colorsJson); // Updates pattern colors from JSON
+void setDefaultColorsForMode(int mode); // Sets default colors for current mode
 void rainbow(int cycleSpeed);   // Makes a rainbow pattern
 void fire(int Cooling, int Sparking, int SpeedDelay);  // Makes fire effects
 void firefly(int sparkSpeed, int pulseSpeed, int newFlyChance, int fadeAmount);  // Makes firefly lights
@@ -68,6 +71,17 @@ int state = 0;                    // Which light pattern we're showing (like cho
 int brightness = 175;             // How bright our lights are (0 = off, 255 = super bright!; caution: super bright colors will seem washed out compared to the less brighter ones)
 int currentBrightness = 50;      // Keeps track of current brightness while fading
 
+// ===== CONFIGURABLE PATTERN COLORS =====
+// These can be changed in real-time via the API
+uint32_t patternColors[3] = {
+  0xFF0000,  // Default color 1 (red)
+  0x00FF00,  // Default color 2 (green)
+  0x0000FF   // Default color 3 (blue)
+};
+
+// Pattern parameters
+int cycleSpeed = 1;               // How fast patterns cycle (1-10)
+
 // ===== GETTING STARTED =====
 void setup() {
   // This is like getting dressed in the morning - we do it once when we start
@@ -78,6 +92,8 @@ void setup() {
 
   strip.begin();                // Wakes up our LED strip
   strip.show();                 // Makes sure all lights start turned off
+
+  setDefaultColorsForMode(state);  // Initialize colors for current mode
 
   setupSPIFFS();                // Set up file system for web files
   setupWiFi();                  // Connect to WiFi network
@@ -111,12 +127,12 @@ void loop() {
       if (currentBrightness < brightness) {
         for (int i = currentBrightness; i <= brightness; i++) {
           strip.setBrightness(i);
-          rainbow(1);
+          rainbow(cycleSpeed);
           strip.show();
           currentBrightness = i;
         }
       } else {
-        rainbow(1);
+        rainbow(cycleSpeed);
         strip.show();
       }
       previousMillis = millis();
@@ -142,27 +158,27 @@ void loop() {
   }
   else if (state == 4) {  // ASTER MODE
     if ((unsigned long)(millis() - previousMillis) >= interval) {
-      aster(1);  // Controls how fast the waves move
+      aster(cycleSpeed);  // Use configurable speed
       strip.show();
       previousMillis = millis();
     }
   }
   else if (state == 5) {  // WATER MODE
     if ((unsigned long)(millis() - previousMillis) >= interval) {
-      water(1);  // Controls how fast the waves move
+      water(cycleSpeed);  // Use configurable speed
       strip.show();
       previousMillis = millis();
     }
   }
   else if (state == 6) {  // KELP MODE
     if ((unsigned long)(millis() - previousMillis) >= interval) {
-      kelp(1);  // Controls how fast the waves move
+      kelp(cycleSpeed);  // Use configurable speed
       strip.show();
       previousMillis = millis();
     }
   } else if (state == 7) {  // MANDARIN TREE MODE
     if ((unsigned long)(millis() - previousMillis) >= interval) {
-      mandarin(1);  // Controls how fast the waves move
+      mandarin(cycleSpeed);  // Use configurable speed
       strip.show();
       previousMillis = millis();
     }
@@ -243,10 +259,10 @@ uint32_t interpolateColor(uint32_t color1, uint32_t color2, byte progress) {
 void rainbow(int cycleSpeed) {
   static int cycles = 0;  // Keeps track of where we are in the rainbow
 
-  // These are our main colors that make up the rainbow:
-  uint32_t color1 = strip.Color(255, 0, 0);    // Bright Red
-  uint32_t color2 = strip.Color(0, 255, 0);    // Bright Green
-  uint32_t color3 = strip.Color(0, 0, 255);    // Bright Blue
+  // Use configurable colors instead of hardcoded ones
+  uint32_t color1 = patternColors[0];  // User-customizable color 1
+  uint32_t color2 = patternColors[1];  // User-customizable color 2
+  uint32_t color3 = patternColors[2];  // User-customizable color 3
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++) {
@@ -263,10 +279,10 @@ void rainbow(int cycleSpeed) {
 void water(int cycleSpeed) {
   static int cycles = 0;  // Keeps track of where we are in the wave pattern
 
-  // Ocean colors! These make it look like moving water:
-  uint32_t color1 = strip.Color(0, 0, 255);     // Deep blue (like the deep ocean)
-  uint32_t color2 = strip.Color(0, 255, 140); // Cyan (like a fresh water beach)
-  uint32_t color3 = strip.Color(0, 140, 255); // Sku Blue (like a deep lake)
+  // Use configurable colors (default to ocean colors if not customized)
+  uint32_t color1 = patternColors[0];  // User-customizable color 1
+  uint32_t color2 = patternColors[1];  // User-customizable color 2
+  uint32_t color3 = patternColors[2];  // User-customizable color 3
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++) {
@@ -738,41 +754,25 @@ void handleGetStatus() {
   json += "\"brightness\":" + String(brightness) + ",";
   json += "\"uptime\":" + String(millis()) + ",";
 
-  // Add current colors based on mode
+  // Add current colors (from active pattern colors)
   json += "\"current_colors\":[";
-  switch(state) {
-    case 0: // Fire
-      json += "\"#ff4500\",\"#ff6600\",\"#ff8800\"";
-      break;
-    case 1: // Shooting Stars (Purple)
-      json += "\"#ff00ff\",\"#8800ff\",\"#4400ff\"";
-      break;
-    case 2: // Rainbow
-      json += "\"#ff0000\",\"#00ff00\",\"#0000ff\"";
-      break;
-    case 3: // Fireflies (Amber)
-      json += "\"#ffb400\",\"#ff9900\",\"#ff7700\"";
-      break;
-    case 4: // Aster Field
-      json += "\"#ec5602\",\"#5518dd\",\"#290849\"";
-      break;
-    case 5: // Ocean Waves
-      json += "\"#0000ff\",\"#00ff8c\",\"#008cff\"";
-      break;
-    case 6: // Radioactive Kelp
-      json += "\"#46ff00\",\"#00ff00\",\"#00ff3c\"";
-      break;
-    case 7: // Mandarin Trees
-      json += "\"#d13528\",\"#067333\",\"#034e23\"";
-      break;
-    default:
-      json += "\"#ffffff\",\"#ffffff\",\"#ffffff\"";
+  for (int i = 0; i < 3; i++) {
+    if (i > 0) json += ",";
+
+    // Convert uint32_t color back to hex string
+    uint8_t r = (patternColors[i] >> 16) & 0xFF;
+    uint8_t g = (patternColors[i] >> 8) & 0xFF;
+    uint8_t b = patternColors[i] & 0xFF;
+
+    char hexStr[8];
+    sprintf(hexStr, "\"#%02x%02x%02x\"", r, g, b);
+    json += hexStr;
   }
   json += "],";
 
-  // Add current parameters (basic for now)
+  // Add current parameters
   json += "\"current_params\":{";
-  json += "\"cycleSpeed\":1,";
+  json += "\"cycleSpeed\":" + String(cycleSpeed) + ",";
   json += "\"brightness\":" + String(brightness);
   json += "}";
 
@@ -828,17 +828,24 @@ void handleUpdate() {
   // Parse mode
   int modeIndex = body.indexOf("\"mode\":");
   if (modeIndex >= 0) {
-    int valueStart = modeIndex + 7;
+    int valueStart = modeIndex + 7; // "mode": is 7 characters
     int valueEnd = body.indexOf(",", valueStart);
     if (valueEnd < 0) valueEnd = body.indexOf("}", valueStart);
 
     String modeStr = body.substring(valueStart, valueEnd);
     modeStr.trim();
+
+    // Debug print
+    Serial.println("Mode string: '" + modeStr + "'");
+
     int newMode = modeStr.toInt();
 
     if (newMode >= 0 && newMode <= 7) {
-      state = newMode;
-      preferences.putInt("state", state);
+      if (state != newMode) {  // Only change if it's actually different
+        state = newMode;
+        preferences.putInt("state", state);
+        setDefaultColorsForMode(state);  // Set default colors for new mode
+      }
       if (updated) response += ",";
       response += "\"mode\":" + String(state);
       updated = true;
@@ -848,16 +855,34 @@ void handleUpdate() {
   // Parse brightness
   int brightnessIndex = body.indexOf("\"brightness\":");
   if (brightnessIndex >= 0) {
-    int valueStart = brightnessIndex + 12;
+    int valueStart = brightnessIndex + 13; // Fixed: was 12, should be 13 for "brightness":
     int valueEnd = body.indexOf(",", valueStart);
     if (valueEnd < 0) valueEnd = body.indexOf("}", valueStart);
 
     String brightnessStr = body.substring(valueStart, valueEnd);
     brightnessStr.trim();
+
+    // Debug print
+    Serial.println("Brightness string: '" + brightnessStr + "'");
+
     int newBrightness = brightnessStr.toInt();
 
     if (newBrightness >= 0 && newBrightness <= 255) {
+      // Smooth brightness transition
+      int oldBrightness = brightness;
       brightness = newBrightness;
+
+      // Gradually change brightness for smooth transition
+      if (abs(oldBrightness - brightness) > 10) {
+        int step = (brightness > oldBrightness) ? 5 : -5;
+        for (int b = oldBrightness; b != brightness; b += step) {
+          if ((step > 0 && b > brightness) || (step < 0 && b < brightness)) break;
+          strip.setBrightness(b);
+          strip.show();
+          delay(10);  // Small delay for smooth transition
+        }
+      }
+
       strip.setBrightness(brightness);
       if (updated) response += ",";
       response += "\"brightness\":" + String(brightness);
@@ -865,19 +890,44 @@ void handleUpdate() {
     }
   }
 
-  // Parse colors array (basic implementation for now)
+  // Parse colors array
   int colorsIndex = body.indexOf("\"colors\":");
   if (colorsIndex >= 0) {
-    if (updated) response += ",";
-    response += "\"colors\":\"received\""; // Placeholder - will implement color parsing later
-    updated = true;
+    int arrayStart = body.indexOf("[", colorsIndex);
+    int arrayEnd = body.indexOf("]", arrayStart);
+
+    if (arrayStart >= 0 && arrayEnd >= 0) {
+      String colorsArray = body.substring(arrayStart, arrayEnd + 1);
+      updatePatternColors(colorsArray);
+
+      if (updated) response += ",";
+      response += "\"colors\":\"updated\"";
+      updated = true;
+    }
   }
 
-  // Parse params object (basic implementation for now)
+  // Parse params object
   int paramsIndex = body.indexOf("\"params\":");
   if (paramsIndex >= 0) {
+    // Parse cycleSpeed parameter
+    int cycleSpeedIndex = body.indexOf("\"cycleSpeed\":", paramsIndex);
+    if (cycleSpeedIndex >= 0) {
+      int valueStart = cycleSpeedIndex + 13; // "cycleSpeed": is 13 chars
+      int valueEnd = body.indexOf(",", valueStart);
+      if (valueEnd < 0) valueEnd = body.indexOf("}", valueStart);
+
+      String speedStr = body.substring(valueStart, valueEnd);
+      speedStr.trim();
+      int newSpeed = speedStr.toInt();
+
+      if (newSpeed >= 1 && newSpeed <= 10) {
+        cycleSpeed = newSpeed;
+        Serial.println("Cycle speed updated to: " + String(cycleSpeed));
+      }
+    }
+
     if (updated) response += ",";
-    response += "\"params\":\"received\""; // Placeholder - will implement param parsing later
+    response += "\"params\":\"updated\"";
     updated = true;
   }
 
@@ -1076,4 +1126,99 @@ void handleFileUpload() {
 
     server.send(200, "text/html", html);
   }
+}
+
+// ===== HEX STRING TO COLOR CONVERTER =====
+uint32_t hexStringToColor(String hexStr) {
+  // Remove # if present
+  if (hexStr.startsWith("#")) {
+    hexStr = hexStr.substring(1);
+  }
+
+  // Convert hex string to integer
+  long number = strtol(hexStr.c_str(), NULL, 16);
+
+  // Extract RGB values
+  uint8_t r = (number >> 16) & 0xFF;
+  uint8_t g = (number >> 8) & 0xFF;
+  uint8_t b = number & 0xFF;
+
+  return strip.Color(r, g, b);
+}
+
+// ===== UPDATE PATTERN COLORS FROM JSON =====
+void updatePatternColors(String colorsJson) {
+  Serial.println("Updating pattern colors: " + colorsJson);
+
+  // Simple parsing for colors array like ["#ff0000", "#00ff00", "#0000ff"]
+  int colorIndex = 0;
+  int startPos = 0;
+
+  while (colorIndex < 3 && startPos < colorsJson.length()) {
+    int quoteStart = colorsJson.indexOf("\"#", startPos);
+    if (quoteStart == -1) break;
+
+    int quoteEnd = colorsJson.indexOf("\"", quoteStart + 1);
+    if (quoteEnd == -1) break;
+
+    String colorStr = colorsJson.substring(quoteStart + 1, quoteEnd);
+    patternColors[colorIndex] = hexStringToColor(colorStr);
+
+    Serial.println("Color " + String(colorIndex) + ": " + colorStr);
+
+    colorIndex++;
+    startPos = quoteEnd + 1;
+  }
+}
+
+// ===== SET DEFAULT COLORS FOR MODE =====
+void setDefaultColorsForMode(int mode) {
+  switch(mode) {
+    case 0: // Fire
+      patternColors[0] = hexStringToColor("#ff4500"); // Orange red
+      patternColors[1] = hexStringToColor("#ff6600"); // Orange
+      patternColors[2] = hexStringToColor("#ff8800"); // Light orange
+      break;
+    case 1: // Shooting Stars (Purple)
+      patternColors[0] = hexStringToColor("#ff00ff"); // Magenta
+      patternColors[1] = hexStringToColor("#8800ff"); // Purple
+      patternColors[2] = hexStringToColor("#4400ff"); // Deep purple
+      break;
+    case 2: // Rainbow
+      patternColors[0] = hexStringToColor("#ff0000"); // Red
+      patternColors[1] = hexStringToColor("#00ff00"); // Green
+      patternColors[2] = hexStringToColor("#0000ff"); // Blue
+      break;
+    case 3: // Fireflies (Amber)
+      patternColors[0] = hexStringToColor("#ffb400"); // Amber
+      patternColors[1] = hexStringToColor("#ff9900"); // Orange amber
+      patternColors[2] = hexStringToColor("#ff7700"); // Deep amber
+      break;
+    case 4: // Aster Field
+      patternColors[0] = hexStringToColor("#ec5602"); // Deep yellow
+      patternColors[1] = hexStringToColor("#5518dd"); // Purple
+      patternColors[2] = hexStringToColor("#290849"); // Violet
+      break;
+    case 5: // Ocean Waves
+      patternColors[0] = hexStringToColor("#0000ff"); // Deep blue
+      patternColors[1] = hexStringToColor("#00ff8c"); // Cyan
+      patternColors[2] = hexStringToColor("#008cff"); // Sky blue
+      break;
+    case 6: // Radioactive Kelp
+      patternColors[0] = hexStringToColor("#46ff00"); // Lime
+      patternColors[1] = hexStringToColor("#00ff00"); // Bright green
+      patternColors[2] = hexStringToColor("#00ff3c"); // Mint green
+      break;
+    case 7: // Mandarin Trees
+      patternColors[0] = hexStringToColor("#d13528"); // Deep orange
+      patternColors[1] = hexStringToColor("#067333"); // Foliage
+      patternColors[2] = hexStringToColor("#034e23"); // Arbor green
+      break;
+    default:
+      patternColors[0] = hexStringToColor("#ffffff"); // White
+      patternColors[1] = hexStringToColor("#ffffff"); // White
+      patternColors[2] = hexStringToColor("#ffffff"); // White
+  }
+
+  Serial.println("Set default colors for mode " + String(mode));
 }

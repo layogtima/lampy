@@ -253,7 +253,7 @@ createApp({
                 if (response.ok) {
                     const status = await response.json();
                     const foundPattern = this.patterns.find(
-                        p => p.id === status.currentPattern
+                        p => p.id === status.current_mode
                     );
                     if (foundPattern) {
                         this.currentPattern = foundPattern;

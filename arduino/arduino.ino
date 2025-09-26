@@ -92,8 +92,11 @@ void setup() {
 
   preferences.begin("lampy", false);  // Opens Lampy's diary to remember settings
   state = preferences.getInt("state", 0);  // Checks what pattern we used last time
+  brightness = preferences.getInt("brightness", 175);  // Load saved brightness or use default
+
 
   strip.begin();                // Wakes up our LED strip
+  strip.setBrightness(brightness);  // Apply saved brightness to strip
   strip.show();                 // Makes sure all lights start turned off
 
   setDefaultColorsForMode(state);  // Initialize colors for current mode
@@ -222,7 +225,6 @@ void switchMode() {
   // This is like changing the TV channel to a different pattern
   state = (state + 1) % 8;  // Cycle through modes 0-5 (like a circle)
   preferences.putInt("state", state);  // Write it in Lampy's diary
-  Serial.printf("Switched to mode %d\n", state);  // Tell the computer what mode we're in
 }
 
 // ===== COLOR WHEEL HELPER =====
@@ -837,7 +839,6 @@ void handleSwitchMode() {
       if (newMode >= 0 && newMode <= 7) {
         state = newMode;
         preferences.putInt("state", state);
-        Serial.printf("Switched to mode %d via web API\n", state);
 
         server.send(200, "application/json", "{\"success\":true,\"mode\":" + String(state) + "}");
         return;
@@ -856,23 +857,25 @@ void handleUpdate() {
   }
 
   String body = server.arg("plain");
-  Serial.println("Update API called with: " + body);
 
   bool updated = false;
   String response = "{\"success\":true,\"updated\":{";
 
-  // Parse mode
+  // Parse mode (check for both "mode" and "pattern" keys)
   int modeIndex = body.indexOf("\"mode\":");
+  int keyLength = 7; // "mode": is 7 characters
+  if (modeIndex < 0) {
+    modeIndex = body.indexOf("\"pattern\":");
+    keyLength = 10; // "pattern": is 10 characters
+  }
   if (modeIndex >= 0) {
-    int valueStart = modeIndex + 7; // "mode": is 7 characters
+    int valueStart = modeIndex + keyLength;
     int valueEnd = body.indexOf(",", valueStart);
     if (valueEnd < 0) valueEnd = body.indexOf("}", valueStart);
 
     String modeStr = body.substring(valueStart, valueEnd);
     modeStr.trim();
 
-    // Debug print
-    Serial.println("Mode string: '" + modeStr + "'");
 
     int newMode = modeStr.toInt();
 
@@ -898,8 +901,6 @@ void handleUpdate() {
     String brightnessStr = body.substring(valueStart, valueEnd);
     brightnessStr.trim();
 
-    // Debug print
-    Serial.println("Brightness string: '" + brightnessStr + "'");
 
     int newBrightness = brightnessStr.toInt();
 
@@ -920,6 +921,7 @@ void handleUpdate() {
       }
 
       strip.setBrightness(brightness);
+      preferences.putInt("brightness", brightness);  // Save brightness to preferences
       if (updated) response += ",";
       response += "\"brightness\":" + String(brightness);
       updated = true;
@@ -958,7 +960,6 @@ void handleUpdate() {
 
       if (newSpeed >= 1 && newSpeed <= 10) {
         cycleSpeed = newSpeed;
-        Serial.println("Cycle speed updated to: " + String(cycleSpeed));
       }
     }
 
@@ -1031,7 +1032,6 @@ void setupSPIFFS() {
 void handleFileRequest() {
   String path = server.uri();
 
-  Serial.println("File request: " + path);
 
   // Check if file exists in SPIFFS
   if (SPIFFS.exists(path)) {
@@ -1040,13 +1040,11 @@ void handleFileRequest() {
       String contentType = getContentType(path);
       server.streamFile(file, contentType);
       file.close();
-      Serial.println("Served: " + path + " (" + contentType + ")");
       return;
     }
   }
 
   // File not found
-  Serial.println("File not found: " + path);
   server.send(404, "text/plain", "File not found: " + path);
 }
 
@@ -1184,7 +1182,6 @@ uint32_t hexStringToColor(String hexStr) {
 
 // ===== UPDATE PATTERN COLORS FROM JSON =====
 void updatePatternColors(String colorsJson) {
-  Serial.println("Updating pattern colors: " + colorsJson);
 
   // Simple parsing for colors array like ["#ff0000", "#00ff00", "#0000ff"]
   int colorIndex = 0;
@@ -1200,7 +1197,6 @@ void updatePatternColors(String colorsJson) {
     String colorStr = colorsJson.substring(quoteStart + 1, quoteEnd);
     patternColors[colorIndex] = hexStringToColor(colorStr);
 
-    Serial.println("Color " + String(colorIndex) + ": " + colorStr);
 
     colorIndex++;
     startPos = quoteEnd + 1;
@@ -1256,7 +1252,6 @@ void setDefaultColorsForMode(int mode) {
       patternColors[2] = hexStringToColor("#ffffff"); // White
   }
 
-  Serial.println("Set default colors for mode " + String(mode));
 }
 
 // ===== WIFI RESET HANDLER =====

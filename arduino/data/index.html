@@ -287,7 +287,7 @@
                   v-for="pattern in patterns"
                   :key="pattern.id"
                   @click="selectPattern(pattern)"
-                  :class="{ 'border-lampy-accent border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
+                  :class="{ 'border-lampy-accent dark:border-lampy-accent border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
                   class="aspect-square bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:scale-105 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
                 >
                   <i
@@ -312,7 +312,7 @@
                     <button
                       @click="openColorPicker(index, $event)"
                       class="select-color-button w-12 h-12 rounded-lg border-2 shadow-sm flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:scale-105 transition-all"
-                      :class="{ 'border-lampy-accent border-4': colorPickerOpen && selectedColorSlot === index, 'border-gray-200 dark:border-gray-700': !colorPickerOpen || selectedColorSlot !== index }"
+                      :class="{ 'outline outline-2 outline-gray-800 dark:outline-white border-gray-200 dark:border-gray-700': colorPickerOpen && selectedColorSlot === index, 'border-gray-200 dark:border-gray-700': !colorPickerOpen || selectedColorSlot !== index }"
                       :style="{ backgroundColor: color }"
                     ></button>
                     <div class="text-center mt-1 text-xs font-semibold">{{ index + 1 }}</div>
@@ -508,7 +508,7 @@
                   v-for="pattern in patterns"
                   :key="pattern.id"
                   @click="selectPattern(pattern)"
-                  :class="{ 'border-lampy-accent border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
+                  :class="{ 'border-lampy-accent dark:border-lampy-accent border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
                   class="min-w-[60px] h-16 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center shadow-sm hover:scale-105 transition-all flex-shrink-0"
                 >
                   <i
@@ -530,7 +530,7 @@
                   :key="index"
                   @click="openColorPicker(index, $event)"
                   class="flex-1 h-10 rounded-lg border-2 shadow-sm flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:scale-105 transition-all"
-                  :class="{ 'border-lampy-accent border-4': colorPickerOpen && selectedColorSlot === index, 'border-gray-200 dark:border-gray-700': !colorPickerOpen || selectedColorSlot !== index }"
+                  :class="{ 'outline outline-2 outline-gray-800 dark:outline-white border-gray-200 dark:border-gray-700': colorPickerOpen && selectedColorSlot === index, 'border-gray-200 dark:border-gray-700': !colorPickerOpen || selectedColorSlot !== index }"
                   :style="{ backgroundColor: color }"
                 >
                   {{ index + 1 }}

@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
-
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lampy v5</title>
@@ -14,850 +13,1100 @@
     <link href="https://fonts.googleapis.com/css2?family=Jura:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 
     <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    fontFamily: { jura: ["Jura", "sans-serif"] },
-                    colors: {
-                        lampy: {
-                            cream: "#ece0cf",
-                            dark: "#1a1a1a",
-                            copper: "#b45309",
-                            accent: "#ff4500",
-                        },
-                    },
-                    animation: {
-                        "spin-slow": "spin 8s linear infinite",
-                        spiral: "spiral 20s linear infinite",
-                        "spiral-reverse": "spiralReverse 20s linear infinite",
-                        "pulse-led": "pulseLed 2s ease-in-out infinite",
-                        "slide-up": "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
-                    },
-                    keyframes: {
-                        spiral: { "0%": { transform: "rotateY(0deg)" }, "100%": { transform: "rotateY(360deg)" } },
-                        spiralReverse: { "0%": { transform: "rotateY(360deg)" }, "100%": { transform: "rotateY(0deg)" } },
-                        pulseLed: { "0%, 100%": { opacity: "0.8" }, "50%": { opacity: "1" } },
-                        slideUp: { "0%": { transform: "translateY(100%)" }, "100%": { transform: "translateY(0)" } },
-                    },
-                },
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            fontFamily: { jura: ["Jura", "sans-serif"] },
+            colors: {
+              lampy: {
+                cream: "#ece0cf",
+                dark: "#1a1a1a",
+                copper: "#b45309",
+                accent: "#ff4500",
+              },
             },
-        };
+            animation: {
+              "spin-slow": "spin 8s linear infinite",
+              spiral: "spiral 20s linear infinite",
+              "spiral-reverse": "spiralReverse 20s linear infinite",
+              "pulse-led": "pulseLed 2s ease-in-out infinite",
+              "slide-up": "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+            },
+            keyframes: {
+              spiral: { "0%": { transform: "rotateY(0deg)" }, "100%": { transform: "rotateY(360deg)" } },
+              spiralReverse: { "0%": { transform: "rotateY(360deg)" }, "100%": { transform: "rotateY(0deg)" } },
+              pulseLed: { "0%, 100%": { opacity: "0.8" }, "50%": { opacity: "1" } },
+              slideUp: { "0%": { transform: "translateY(100%)" }, "100%": { transform: "translateY(0)" } },
+            },
+          },
+        },
+      };
     </script>
 
     <style>
-        :root {
-            --copper: #b45309;
-            --copper-highlight: #d97706;
-            --copper-shadow: #92400e;
-        }
+      :root {
+        --copper: #b45309;
+        --copper-highlight: #d97706;
+        --copper-shadow: #92400e;
+      }
 
-        body {
-            font-family: 'Jura', sans-serif;
-            overflow: hidden;
-            touch-action: pan-y;
-        }
+      body {
+        font-family: "Jura", sans-serif;
+        overflow: hidden;
+        touch-action: pan-y;
+      }
 
-        .glass-effect {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
 
-        html.dark .glass-effect {
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
+      html.dark .glass-effect {
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
 
-        /* Vertical Sliders - Properly Centered & Themed */
-        input[type="range"].vertical-slider {
-            writing-mode: bt-lr;
-            -webkit-appearance: slider-vertical;
-            width: 8px;
-            height: 240px;
-            background: linear-gradient(to bottom, rgba(255, 69, 0, 0.2) 0%, rgba(255, 69, 0, 0.05) 100%);
-            border-radius: 4px;
-            outline: none;
-            cursor: pointer;
-        }
+      /* Vertical Sliders - Properly Centered & Themed */
+      input[type="range"].vertical-slider {
+        writing-mode: vertical-lr;
+        direction: rtl;
+        width: 8px;
+        height: 240px;
+        background: linear-gradient(to bottom, rgba(255, 69, 0, 0.2) 0%, rgba(255, 69, 0, 0.05) 100%);
+        border-radius: 4px;
+        outline: none;
+        cursor: pointer;
+      }
 
-        input[type="range"].vertical-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 22px;
-            height: 22px;
-            background: linear-gradient(135deg, #ff6b35 0%, #ff4500 100%);
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            cursor: grab;
-            box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3);
-            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+      input[type="range"].vertical-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 22px;
+        height: 22px;
+        background: linear-gradient(135deg, #ff6b35 0%, #ff4500 100%);
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        cursor: grab;
+        box-shadow: 0 4px 12px rgba(255, 69, 0, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.3);
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
 
-        input[type="range"].vertical-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-            box-shadow: 0 6px 20px rgba(255, 69, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.4);
-            border-color: rgba(255, 255, 255, 0.5);
-        }
+      input[type="range"].vertical-slider::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+        box-shadow: 0 6px 20px rgba(255, 69, 0, 0.6), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+        border-color: rgba(255, 255, 255, 0.5);
+      }
 
-        input[type="range"].vertical-slider::-webkit-slider-thumb:active {
-            cursor: grabbing;
-            transform: scale(1.1);
-        }
+      input[type="range"].vertical-slider::-webkit-slider-thumb:active {
+        cursor: grabbing;
+        transform: scale(1.1);
+      }
 
-        html.dark input[type="range"].vertical-slider {
-            background: linear-gradient(to bottom, rgba(255, 69, 0, 0.3) 0%, rgba(255, 69, 0, 0.1) 100%);
-        }
+      html.dark input[type="range"].vertical-slider {
+        background: linear-gradient(to bottom, rgba(255, 69, 0, 0.3) 0%, rgba(255, 69, 0, 0.1) 100%);
+      }
 
-        /* 3D LED Spiral */
-        .lampy-spiral {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transform-style: preserve-3d;
-        }
+      /* 3D LED Spiral */
+      .lampy-spiral {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+      }
 
-        /* Copper Tube - 10% Opacity (Ghost Mode) */
-        .copper-tube {
-            background: linear-gradient(180deg,
-                    var(--copper-highlight) 0%,
-                    var(--copper) 25%,
-                    var(--copper-shadow) 50%,
-                    var(--copper) 75%,
-                    var(--copper-highlight) 100%);
-            opacity: 0.1;
-            box-shadow: inset -3px 0 6px rgba(0, 0, 0, 0.3), inset 3px 0 3px rgba(255, 255, 255, 0.2);
-        }
+      /* Copper Tube - 10% Opacity (Ghost Mode) */
+      .copper-tube {
+        background: linear-gradient(
+          180deg,
+          var(--copper-highlight) 0%,
+          var(--copper) 25%,
+          var(--copper-shadow) 50%,
+          var(--copper) 75%,
+          var(--copper-highlight) 100%
+        );
+        opacity: 0.1;
+        box-shadow: inset -3px 0 6px rgba(0, 0, 0, 0.3), inset 3px 0 3px rgba(255, 255, 255, 0.2);
+      }
 
-        .copper-tube-shine {
-            background: linear-gradient(180deg,
-                    rgba(255, 255, 255, 0.9) 0%,
-                    rgba(238, 172, 125, 0.8) 25%,
-                    rgba(217, 119, 6, 0.6) 50%,
-                    rgba(238, 172, 125, 0.8) 75%,
-                    rgba(255, 255, 255, 0.9) 100%);
-        }
+      .copper-tube-shine {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.9) 0%,
+          rgba(238, 172, 125, 0.8) 25%,
+          rgba(217, 119, 6, 0.6) 50%,
+          rgba(238, 172, 125, 0.8) 75%,
+          rgba(255, 255, 255, 0.9) 100%
+        );
+      }
 
-        /* LED Lights */
-        .led-light {
-            width: 100%;
-            height: 100%;
-            border-radius: 3px;
-            background: #333333;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.2s ease;
-            box-shadow: 0 0 3px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
-            transform: rotateY(0deg) !important;
-        }
+      /* LED Lights */
+      .led-light {
+        width: 100%;
+        height: 100%;
+        border-radius: 3px;
+        background: #333333;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.2s ease;
+        box-shadow: 0 0 3px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+        transform: rotateY(0deg) !important;
+      }
 
-        .led-light-mobile {
-            width: 100%;
-            height: 100%;
-            border-radius: 2px;
-            background: #333333;
-            border: 0.5px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.2s ease;
-            box-shadow: 0 0 2px rgba(0, 0, 0, 0.3), inset 0 0.5px 1px rgba(255, 255, 255, 0.4);
-            transform: rotateY(0deg) !important;
-        }
+      .led-light-mobile {
+        width: 100%;
+        height: 100%;
+        border-radius: 2px;
+        background: #333333;
+        border: 0.5px solid rgba(255, 255, 255, 0.3);
+        transition: all 0.2s ease;
+        box-shadow: 0 0 2px rgba(0, 0, 0, 0.3), inset 0 0.5px 1px rgba(255, 255, 255, 0.4);
+        transform: rotateY(0deg) !important;
+      }
 
-        /* Mobile Control Drawer */
-        .mobile-drawer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-height: 40vh;
-            transform: translateY(0);
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+      /* Mobile Control Drawer */
+      .mobile-drawer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-height: 40vh;
+        transform: translateY(0);
+        transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      }
 
-        .mobile-drawer.collapsed {
-            transform: translateY(calc(100% - 60px));
-        }
+      .mobile-drawer.collapsed {
+        transform: translateY(calc(100% - 60px));
+      }
 
-        .drawer-handle {
-            width: 40px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 2px;
-            margin: 0 auto 12px;
-        }
+      .drawer-handle {
+        width: 40px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        margin: 0 auto 12px;
+      }
 
-        html.dark .drawer-handle {
-            background: rgba(255, 255, 255, 0.2);
-        }
+      html.dark .drawer-handle {
+        background: rgba(255, 255, 255, 0.2);
+      }
 
-        /* Hide scrollbar */
-        .hide-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
+      /* Hide scrollbar */
+      .hide-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
 
-        /* Color swatch hover effect */
-        .color-swatch {
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
+      /* Color swatch hover effect */
+      .color-swatch {
+        transition: all 0.2s ease;
+        cursor: pointer;
+      }
 
-        .color-swatch:hover {
-            transform: scale(1.15);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        }
+      .color-swatch:hover {
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
 
-        .color-swatch.active {
-            transform: scale(1.1);
-            box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.5);
-        }
+      .color-swatch.active {
+        transform: scale(1.1);
+        box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.5);
+      }
     </style>
-</head>
+  </head>
 
-<body class="min-h-screen bg-lampy-cream dark:bg-lampy-dark text-lampy-dark dark:text-lampy-cream" id="app">
-    <!-- Floating Buttons -->
-    <div class="fixed top-4 left-4 z-50">
-        <button @click="showSettings = true"
-            class="w-14 h-14 rounded-full glass-effect flex items-center justify-center shadow-lg hover:scale-105 hover:bg-lampy-accent hover:text-white transition-all duration-300">
-            <svg viewBox="0 0 200 200" class="w-8 h-8 animate-spin-slow">
-                <g transform="translate(100,100)">
-                    <ellipse cx="0" cy="0" rx="50" ry="15" fill="none" :stroke="isDark ? '#40E0D0' : '#0891b2'"
-                        stroke-width="3" opacity="0.9" />
-                    <ellipse cx="0" cy="0" rx="50" ry="15" fill="none" :stroke="isDark ? '#40E0D0' : '#0891b2'"
-                        stroke-width="3" opacity="0.9" transform="rotate(60)" />
-                    <ellipse cx="0" cy="0" rx="50" ry="15" fill="none" :stroke="isDark ? '#40E0D0' : '#0891b2'"
-                        stroke-width="3" opacity="0.9" transform="rotate(120)" />
-                </g>
-                <circle cx="100" cy="100" r="15" fill="#FF6B35" />
-            </svg>
+  <body class="min-h-screen bg-lampy-cream dark:bg-lampy-dark text-lampy-dark dark:text-lampy-cream">
+    <div id="app">
+      <!-- Floating Buttons -->
+      <div class="fixed top-4 left-4 z-50">
+        <button
+          @click="showSettings = true"
+          class="w-14 h-14 rounded-full glass-effect flex items-center justify-center shadow-lg hover:scale-105 hover:bg-lampy-accent hover:text-white transition-all duration-300"
+        >
+          <svg viewBox="0 0 200 200" class="w-8 h-8 animate-spin-slow">
+            <g transform="translate(100,100)">
+              <ellipse
+                cx="0"
+                cy="0"
+                rx="50"
+                ry="15"
+                fill="none"
+                :stroke="isDark ? '#40E0D0' : '#0891b2'"
+                stroke-width="3"
+                opacity="0.9"
+              />
+              <ellipse
+                cx="0"
+                cy="0"
+                rx="50"
+                ry="15"
+                fill="none"
+                :stroke="isDark ? '#40E0D0' : '#0891b2'"
+                stroke-width="3"
+                opacity="0.9"
+                transform="rotate(60)"
+              />
+              <ellipse
+                cx="0"
+                cy="0"
+                rx="50"
+                ry="15"
+                fill="none"
+                :stroke="isDark ? '#40E0D0' : '#0891b2'"
+                stroke-width="3"
+                opacity="0.9"
+                transform="rotate(120)"
+              />
+            </g>
+            <circle cx="100" cy="100" r="15" fill="#FF6B35" />
+          </svg>
         </button>
-    </div>
+      </div>
 
-    <div class="fixed top-4 right-4 z-50">
-        <button @click="toggleTheme"
-            class="w-14 h-14 rounded-full glass-effect flex items-center justify-center shadow-lg hover:scale-105 hover:bg-lampy-accent hover:text-white transition-all duration-300">
-            <i :class="isDark ? 'fas fa-sun' : 'fas fa-moon'" class="text-lg"></i>
+      <div class="fixed top-4 right-4 z-50">
+        <button
+          @click="toggleTheme"
+          class="w-14 h-14 rounded-full glass-effect flex items-center justify-center shadow-lg hover:scale-105 hover:bg-lampy-accent hover:text-white transition-all duration-300"
+        >
+          <i :class="isDark ? 'fas fa-sun' : 'fas fa-moon'" class="text-lg"></i>
         </button>
-    </div>
+      </div>
 
-    <!-- Desktop Layout -->
-    <div class="hidden lg:flex h-screen">
+      <!-- Desktop Layout -->
+      <div class="hidden lg:flex h-screen">
         <!-- Left Panel - Patterns & Colors -->
         <div
-            class="w-80 h-full bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
-            <div class="p-6 space-y-8">
-                <!-- Patterns -->
-                <div>
-                    <h3 class="text-xs font-bold mb-4 text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                        Patterns</h3>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button v-for="pattern in patterns" :key="pattern.id" @click="selectPattern(pattern)"
-                            :class="{ 'border-lampy-accent border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
-                            class="aspect-square bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:scale-105 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md">
-                            <i :class="pattern.icon" class="text-xl"
-                                :class="currentPattern?.id === pattern.id ? 'text-lampy-accent' : ''"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="border-t border-gray-200 dark:border-gray-800"></div>
-
-                <!-- Color Palette (Curated) -->
-                <div v-if="currentPattern">
-                    <h3 class="text-xs font-bold mb-4 text-gray-500 dark:text-gray-400 uppercase tracking-widest">Color
-                        Palette</h3>
-                    <div class="grid grid-cols-5 gap-2 mb-4">
-                        <button v-for="(swatch, index) in curatedColors" :key="index" @click="applyColor(swatch.value)"
-                            :class="{ 'active': isColorActive(swatch.value) }"
-                            class="color-swatch aspect-square rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-sm"
-                            :style="{ backgroundColor: swatch.value }" :title="swatch.name">
-                        </button>
-                    </div>
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex gap-2 flex-1">
-                            <div v-for="(color, index) in currentPattern.colors" :key="index"
-                                class="w-12 h-12 rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-center text-xs font-bold text-white"
-                                :style="{ backgroundColor: color }">
-                                {{ index + 1 }}
-                            </div>
-                        </div>
-                        <button @click="resetColors"
-                            class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white hover:scale-105 transition-all text-sm">
-                            <i class="fas fa-undo"></i>
-                        </button>
-                    </div>
-                </div>
+          class="w-80 h-full bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto"
+        >
+          <div class="p-6 space-y-8">
+            <!-- Patterns -->
+            <div>
+              <h3 class="text-xs font-bold mb-4 text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                Patterns
+              </h3>
+              <div class="grid grid-cols-4 gap-2">
+                <button
+                  v-for="pattern in patterns"
+                  :key="pattern.id"
+                  @click="selectPattern(pattern)"
+                  :class="{ 'border-lampy-accent border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
+                  class="aspect-square bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:scale-105 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
+                >
+                  <i
+                    :class="pattern.icon"
+                    class="text-xl"
+                    :class="currentPattern?.id === pattern.id ? 'text-lampy-accent' : ''"
+                  ></i>
+                </button>
+              </div>
             </div>
+
+            <div class="border-t border-gray-200 dark:border-gray-800"></div>
+
+            <!-- Color Palette (Curated) -->
+            <div v-if="currentPattern">
+              <h3 class="text-xs font-bold mb-4 text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                Pattern Colors
+              </h3>
+              <div class="flex items-start justify-between gap-2 relative">
+                <div class="flex gap-2 flex-1">
+                  <div v-for="(color, index) in currentPattern.colors" :key="index" class="relative">
+                    <button
+                      @click="openColorPicker(index, $event)"
+                      class="select-color-button w-12 h-12 rounded-lg border-2 shadow-sm flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:scale-105 transition-all"
+                      :class="{ 'border-lampy-accent border-4': colorPickerOpen && selectedColorSlot === index, 'border-gray-200 dark:border-gray-700': !colorPickerOpen || selectedColorSlot !== index }"
+                      :style="{ backgroundColor: color }"
+                    ></button>
+                    <div class="text-center mt-1 text-xs font-semibold">{{ index + 1 }}</div>
+                  </div>
+                </div>
+                <button
+                  @click="resetColors"
+                  class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white hover:scale-105 transition-all text-sm"
+                >
+                  <i class="fas fa-undo"></i>
+                </button>
+              </div>
+
+              <!-- Color Picker Popover -->
+              <div v-if="colorPickerOpen" class="fixed inset-0 z-50" @click="closeColorPicker">
+                <div
+                  @click.stop
+                  class="absolute bg-white dark:bg-gray-800 border-2 border-lampy-accent dark:border-lampy-accent rounded-xl shadow-2xl p-4"
+                  :style="colorPickerPosition"
+                >
+                  <div class="flex items-center justify-between mb-3">
+                    <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                      Choose Color {{ selectedColorSlot + 1 }}
+                    </h4>
+                    <button
+                      @click="closeColorPicker"
+                      class="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white transition-all"
+                    >
+                      <i class="fas fa-times text-xs"></i>
+                    </button>
+                  </div>
+                  <div class="grid grid-cols-6 gap-2 w-64">
+                    <button
+                      v-for="(swatch, index) in curatedColors"
+                      :key="index"
+                      @click="applyColorToSlot(swatch.value)"
+                      :class="{ 'active': currentPattern.colors[selectedColorSlot] === swatch.value }"
+                      class="color-swatch aspect-square rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-sm"
+                      :style="{ backgroundColor: swatch.value }"
+                      :title="swatch.name"
+                    ></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Center - Lampy with Vertical Controls -->
-        <div class="flex-1 flex items-center justify-center bg-white dark:bg-gray-800 relative"
-            style="perspective: 1200px;">
-            <!-- Left Slider - Brightness -->
-            <div class="absolute left-8 flex flex-col items-center gap-3">
-                <span
-                    class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest transform -rotate-90 origin-center mb-12">Brightness</span>
-                <input v-model="brightness" type="range" min="1" max="100" class="vertical-slider" />
-                <span class="text-sm font-semibold px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded text-xs">{{ brightness
-                    }}%</span>
-            </div>
+        <div
+          class="flex-1 flex items-center justify-center bg-white dark:bg-gray-800 relative"
+          style="perspective: 1200px"
+        >
+          <!-- Left Slider - Brightness -->
+          <div class="absolute left-8 flex flex-col items-center gap-3">
+            <span
+              class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest transform -rotate-90 origin-center mb-12"
+            >
+              Brightness
+            </span>
+            <input v-model="brightness" type="range" min="1" max="100" class="vertical-slider accent-lampy-accent" />
+            <span class="text-sm font-semibold px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded text-xs">
+              {{ brightness }}%
+            </span>
+          </div>
 
-            <!-- 3D Lampy -->
-            <div class="relative" style="width: 500px; height: 600px; transform-style: preserve-3d;">
-                <div class="copper-tube absolute left-1/2 top-[8%] w-[52px] h-[84%] rounded-lg overflow-hidden"
-                    style="transform: translateX(-50%) translateZ(1px); transform-style: preserve-3d;">
-                    <div class="copper-tube-shine h-full w-0.5 relative left-1 rounded-sm"></div>
-                </div>
-                <div class="lampy-spiral animate-spiral">
-                    <div v-for="i in 72" :key="i" class="absolute w-3 h-3" :style="getLEDPosition(i)"
-                        style="transform-style: preserve-3d;">
-                        <div class="animate-spiral-reverse h-full">
-                            <div class="led-light" :style="getLEDColor(i)"
-                                :class="{ 'animate-pulse-led': getLEDIntensity(i) > 0.7 }"></div>
-                        </div>
-                    </div>
-                </div>
+          <!-- 3D Lampy -->
+          <div class="relative" style="width: 500px; height: 600px; transform-style: preserve-3d">
+            <div
+              class="copper-tube absolute left-1/2 top-[8%] w-[52px] h-[84%] rounded-lg overflow-hidden"
+              style="transform: translateX(-50%) translateZ(1px); transform-style: preserve-3d"
+            >
+              <div class="copper-tube-shine h-full w-0.5 relative left-1 rounded-sm"></div>
             </div>
+            <div class="lampy-spiral animate-spiral">
+              <div
+                v-for="i in 72"
+                :key="i"
+                class="absolute w-3 h-3"
+                :style="getLEDPosition(i)"
+                style="transform-style: preserve-3d"
+              >
+                <div class="animate-spiral-reverse h-full">
+                  <div
+                    class="led-light"
+                    :style="getLEDColor(i)"
+                    :class="{ 'animate-pulse-led': getLEDIntensity(i) > 0.7 }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <!-- Right Slider - Speed -->
-            <div class="absolute right-8 flex flex-col items-center gap-3">
-                <span
-                    class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest transform -rotate-90 origin-center mb-4">Speed</span>
-                <input v-model="speed" type="range" min="1" max="10" class="vertical-slider" />
-                <span class="text-sm font-semibold px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded text-xs">{{
-                    getSpeedLabel(speed) }}</span>
-            </div>
+          <!-- Right Slider - Speed -->
+          <div class="absolute right-8 flex flex-col items-center gap-3">
+            <span
+              class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest transform -rotate-90 origin-center mb-4"
+            >
+              Speed
+            </span>
+            <input v-model="speed" type="range" min="1" max="10" class="vertical-slider accent-lampy-accent" />
+            <span class="text-sm font-semibold px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded text-xs">
+              {{ getSpeedLabel(speed) }}
+            </span>
+          </div>
         </div>
-    </div>
+      </div>
 
-    <!-- Mobile Layout - LED Showcase First -->
-    <div class="lg:hidden h-screen flex flex-col relative">
+      <!-- Mobile Layout - LED Showcase First -->
+      <div class="lg:hidden h-screen flex flex-col relative">
         <!-- LED Showcase - 70% of screen -->
-        <div class="flex-1 bg-white dark:bg-gray-800 flex items-center justify-center relative"
-            style="perspective: 800px;">
-            <!-- Minimal Vertical Sliders -->
-            <div class="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
-                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wide">BRI</span>
-                <input v-model="brightness" type="range" min="1" max="100" class="vertical-slider"
-                    style="height: 180px; width: 6px;" />
-                <span class="text-[10px] font-semibold">{{ brightness }}</span>
-            </div>
+        <div
+          class="flex-1 bg-white dark:bg-gray-800 flex items-center justify-center relative"
+          style="perspective: 800px"
+        >
+          <!-- Minimal Vertical Sliders -->
+          <div class="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
+            <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wide">BRI</span>
+            <input
+              v-model="brightness"
+              type="range"
+              min="1"
+              max="100"
+              class="vertical-slider accent-lampy-accent"
+              style="height: 180px; width: 6px"
+            />
+            <span class="text-[10px] font-semibold">{{ brightness }}</span>
+          </div>
 
-            <div class="relative w-full h-full flex items-center justify-center"
-                style="transform-style: preserve-3d; max-width: 350px; max-height: 500px;">
-                <div class="copper-tube absolute left-1/2 top-[8%] w-3 h-[84%] rounded-md overflow-hidden"
-                    style="transform: translateX(-50%) translateZ(1px); transform-style: preserve-3d;">
-                    <div class="copper-tube-shine h-full w-0.5 relative left-0.5 rounded-sm"></div>
-                </div>
-                <div class="lampy-spiral animate-spiral">
-                    <div v-for="i in 72" :key="i" class="absolute w-2.5 h-2.5" :style="getLEDPositionMobile(i)"
-                        style="transform-style: preserve-3d;">
-                        <div class="animate-spiral-reverse h-full">
-                            <div class="led-light-mobile" :style="getLEDColor(i)"
-                                :class="{ 'animate-pulse-led': getLEDIntensity(i) > 0.7 }"></div>
-                        </div>
-                    </div>
-                </div>
+          <div
+            class="relative w-full h-full flex items-center justify-center"
+            style="transform-style: preserve-3d; max-width: 350px; max-height: 500px"
+          >
+            <div
+              class="copper-tube absolute left-1/2 top-[8%] w-3 h-[84%] rounded-md overflow-hidden"
+              style="transform: translateX(-50%) translateZ(1px); transform-style: preserve-3d"
+            >
+              <div class="copper-tube-shine h-full w-0.5 relative left-0.5 rounded-sm"></div>
             </div>
+            <div class="lampy-spiral animate-spiral">
+              <div
+                v-for="i in 72"
+                :key="i"
+                class="absolute w-2.5 h-2.5"
+                :style="getLEDPositionMobile(i)"
+                style="transform-style: preserve-3d"
+              >
+                <div class="animate-spiral-reverse h-full">
+                  <div
+                    class="led-light-mobile"
+                    :style="getLEDColor(i)"
+                    :class="{ 'animate-pulse-led': getLEDIntensity(i) > 0.7 }"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-            <div class="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
-                <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wide">SPD</span>
-                <input v-model="speed" type="range" min="1" max="10" class="vertical-slider"
-                    style="height: 180px; width: 6px;" />
-                <span class="text-[10px] font-semibold">{{ getSpeedLabel(speed).charAt(0) }}</span>
-            </div>
+          <div class="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
+            <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wide">SPD</span>
+            <input
+              v-model="speed"
+              type="range"
+              min="1"
+              max="10"
+              class="vertical-slider accent-lampy-accent"
+              style="height: 180px; width: 6px"
+            />
+            <span class="text-[10px] font-semibold">{{ getSpeedLabel(speed).charAt(0) }}</span>
+          </div>
         </div>
 
         <!-- Swipe-Up Drawer -->
-        <div :class="{ 'collapsed': drawerCollapsed }"
-            class="mobile-drawer bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 rounded-t-3xl shadow-2xl overflow-hidden">
-            <div @click="drawerCollapsed = !drawerCollapsed" class="p-4 cursor-pointer">
-                <div class="drawer-handle"></div>
-                <div class="text-center text-xs font-bold text-gray-500 uppercase tracking-wide">
-                    {{ drawerCollapsed ? 'Swipe Up for Controls' : 'Swipe Down to Close' }}
-                </div>
+        <div
+          :class="{ 'collapsed': drawerCollapsed }"
+          class="mobile-drawer bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 rounded-t-3xl shadow-2xl overflow-hidden"
+        >
+          <div @click="drawerCollapsed = !drawerCollapsed" class="p-4 cursor-pointer">
+            <div class="drawer-handle"></div>
+            <div class="text-center text-xs font-bold text-gray-500 uppercase tracking-wide">
+              {{ drawerCollapsed ? 'Swipe Up for Controls' : 'Swipe Down to Close' }}
             </div>
+          </div>
 
-            <div v-show="!drawerCollapsed" class="p-4 space-y-4 overflow-y-auto" style="max-height: calc(40vh - 80px);">
-                <!-- Patterns Carousel -->
-                <div>
-                    <h3 class="text-xs font-bold mb-3 text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                        Patterns</h3>
-                    <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-                        <button v-for="pattern in patterns" :key="pattern.id" @click="selectPattern(pattern)"
-                            :class="{ 'border-lampy-accent border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
-                            class="min-w-[60px] h-16 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center shadow-sm hover:scale-105 transition-all flex-shrink-0">
-                            <i :class="pattern.icon" class="text-lg"
-                                :class="currentPattern?.id === pattern.id ? 'text-lampy-accent' : ''"></i>
-                            <span class="text-[8px] mt-1 font-semibold">{{ pattern.name.split(' ')[0] }}</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Color Swatches -->
-                <div v-if="currentPattern">
-                    <h3 class="text-xs font-bold mb-3 text-gray-500 dark:text-gray-400 uppercase tracking-widest">Colors
-                    </h3>
-                    <div class="grid grid-cols-6 gap-2 mb-3">
-                        <button v-for="(swatch, index) in curatedColors" :key="index" @click="applyColor(swatch.value)"
-                            :class="{ 'active': isColorActive(swatch.value) }"
-                            class="color-swatch aspect-square rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-sm"
-                            :style="{ backgroundColor: swatch.value }">
-                        </button>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <div v-for="(color, index) in currentPattern.colors" :key="index"
-                            class="flex-1 h-10 rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-center text-xs font-bold text-white"
-                            :style="{ backgroundColor: color }">
-                            {{ index + 1 }}
-                        </div>
-                        <button @click="resetColors"
-                            class="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white flex-shrink-0">
-                            <i class="fas fa-undo text-xs"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Settings Modal -->
-    <div v-if="showSettings"
-        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-        @click="showSettings = false">
-        <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl max-w-md w-full max-h-[80vh] overflow-y-auto shadow-2xl"
-            @click.stop>
-            <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                <h2 class="text-xl font-bold">Lampy Settings</h2>
-                <button @click="showSettings = false"
-                    class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white transition-all">
-                    <i class="fas fa-times text-sm"></i>
+          <div v-show="!drawerCollapsed" class="p-4 space-y-4 overflow-y-auto" style="max-height: calc(40vh - 80px)">
+            <!-- Patterns Carousel -->
+            <div>
+              <h3 class="text-xs font-bold mb-3 text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+                Patterns
+              </h3>
+              <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
+                <button
+                  v-for="pattern in patterns"
+                  :key="pattern.id"
+                  @click="selectPattern(pattern)"
+                  :class="{ 'border-lampy-accent border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
+                  class="min-w-[60px] h-16 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center shadow-sm hover:scale-105 transition-all flex-shrink-0"
+                >
+                  <i
+                    :class="pattern.icon"
+                    class="text-lg"
+                    :class="currentPattern?.id === pattern.id ? 'text-lampy-accent' : ''"
+                  ></i>
+                  <span class="text-[8px] mt-1 font-semibold">{{ pattern.name.split(' ')[0] }}</span>
                 </button>
+              </div>
             </div>
 
-            <div class="p-6 space-y-6">
-                <!-- WiFi Connection -->
-                <div>
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">WiFi
-                            Connection</h3>
-                        <button @click="showWifiCredentials = !showWifiCredentials"
-                            class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white transition-all">
-                            <i class="fas fa-cog text-xs"></i>
-                        </button>
-                    </div>
-                    <div
-                        class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg">
-                        <div
-                            class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white flex-shrink-0">
-                            <i class="fas fa-wifi"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="font-semibold text-sm">{{ wifiStatus.ssid }}</div>
-                            <div class="text-xs text-gray-500">Connected</div>
-                        </div>
-                    </div>
-
-                    <div v-if="showWifiCredentials"
-                        class="mt-3 p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
-                        <div>
-                            <label
-                                class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">SSID</label>
-                            <input v-model="wifiStatus.ssid" type="text"
-                                class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm" />
-                        </div>
-                        <div>
-                            <label
-                                class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Password</label>
-                            <div class="flex gap-2">
-                                <input v-model="wifiStatus.password" :type="showPassword ? 'text' : 'password'"
-                                    class="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm" />
-                                <button @click="showPassword = !showPassword"
-                                    class="px-3 py-2 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-all">
-                                    <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <button @click="updateWifiSettings"
-                            class="w-full px-4 py-2 bg-lampy-accent text-white rounded font-semibold text-sm hover:bg-lampy-accent/90 transition-all">
-                            Update WiFi
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Device Info -->
-                <div>
-                    <h3 class="text-xs font-bold mb-3 uppercase tracking-widest text-gray-500 dark:text-gray-400">Device
-                        Info</h3>
-                    <div class="grid grid-cols-2 gap-2">
-                        <div
-                            class="flex justify-between p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded text-xs">
-                            <span class="font-semibold text-gray-500">Firmware</span>
-                            <span class="font-semibold">{{ deviceInfo.firmware }}</span>
-                        </div>
-                        <div
-                            class="flex justify-between p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded text-xs">
-                            <span class="font-semibold text-gray-500">Hardware</span>
-                            <span class="font-semibold">{{ deviceInfo.hardware }}</span>
-                        </div>
-                        <div
-                            class="flex justify-between p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded text-xs">
-                            <span class="font-semibold text-gray-500">LEDs</span>
-                            <span class="font-semibold">{{ deviceInfo.ledCount }}</span>
-                        </div>
-                        <div
-                            class="flex justify-between p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded text-xs">
-                            <span class="font-semibold text-gray-500">Uptime</span>
-                            <span class="font-semibold">{{ deviceInfo.uptime }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="grid grid-cols-2 gap-2">
-                    <button
-                        class="flex items-center justify-center gap-2 p-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:scale-105 transition-all font-semibold text-xs">
-                        <i class="fas fa-code"></i>
-                        Schematics
-                    </button>
-                    <button
-                        class="flex items-center justify-center gap-2 p-3 bg-lampy-accent text-white border border-lampy-accent rounded-lg hover:scale-105 transition-all font-semibold text-xs">
-                        <i class="fas fa-shopping-cart"></i>
-                        Buy Lampys
-                    </button>
-                </div>
+            <!-- Pattern Colors -->
+            <div v-if="currentPattern">
+              <h3 class="text-xs font-bold mb-3 text-gray-500 dark:text-gray-400 uppercase tracking-widest">Colors</h3>
+              <div class="flex items-center gap-2">
+                <button
+                  v-for="(color, index) in currentPattern.colors"
+                  :key="index"
+                  @click="openColorPicker(index, $event)"
+                  class="flex-1 h-10 rounded-lg border-2 shadow-sm flex items-center justify-center text-xs font-bold text-white cursor-pointer hover:scale-105 transition-all"
+                  :class="{ 'border-lampy-accent border-4': colorPickerOpen && selectedColorSlot === index, 'border-gray-200 dark:border-gray-700': !colorPickerOpen || selectedColorSlot !== index }"
+                  :style="{ backgroundColor: color }"
+                >
+                  {{ index + 1 }}
+                </button>
+                <button
+                  @click="resetColors"
+                  class="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white flex-shrink-0"
+                >
+                  <i class="fas fa-undo text-xs"></i>
+                </button>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
+
+      <!-- Settings Modal -->
+      <div
+        v-if="showSettings"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+        @click="showSettings = false"
+      >
+        <div
+          class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl max-w-md w-full max-h-[80vh] overflow-y-auto shadow-2xl"
+          @click.stop
+        >
+          <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <h2 class="text-xl font-bold">Lampy Settings</h2>
+            <button
+              @click="showSettings = false"
+              class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white transition-all"
+            >
+              <i class="fas fa-times text-sm"></i>
+            </button>
+          </div>
+
+          <div class="p-6 space-y-6">
+            <!-- WiFi Connection -->
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                  WiFi Connection
+                </h3>
+                <button
+                  @click="showWifiCredentials = !showWifiCredentials"
+                  class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white transition-all"
+                >
+                  <i class="fas fa-cog text-xs"></i>
+                </button>
+              </div>
+              <div
+                class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg"
+              >
+                <div
+                  class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white flex-shrink-0"
+                >
+                  <i class="fas fa-wifi"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="font-semibold text-sm">{{ wifiStatus.ssid }}</div>
+                  <div class="text-xs text-gray-500">Connected</div>
+                </div>
+              </div>
+
+              <div
+                v-if="showWifiCredentials"
+                class="mt-3 p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3"
+              >
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">SSID</label>
+                  <input
+                    v-model="wifiStatus.ssid"
+                    type="text"
+                    class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm"
+                  />
+                </div>
+                <div>
+                  <label class="text-xs font-semibold text-gray-500 uppercase tracking-wide block mb-1">Password</label>
+                  <div class="flex gap-2">
+                    <input
+                      v-model="wifiStatus.password"
+                      :type="showPassword ? 'text' : 'password'"
+                      class="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded text-sm"
+                    />
+                    <button
+                      @click="showPassword = !showPassword"
+                      class="px-3 py-2 bg-gray-200 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-all"
+                    >
+                      <i :class="showPassword ? 'fas fa-eye-slash' : 'fas fa-eye'" class="text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+                <button
+                  @click="updateWifiSettings"
+                  class="w-full px-4 py-2 bg-lampy-accent text-white rounded font-semibold text-sm hover:bg-lampy-accent/90 transition-all"
+                >
+                  Update WiFi
+                </button>
+              </div>
+            </div>
+
+            <!-- Device Info -->
+            <div>
+              <h3 class="text-xs font-bold mb-3 uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                Device Info
+              </h3>
+              <div class="grid grid-cols-2 gap-2">
+                <div
+                  class="flex justify-between p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded text-xs"
+                >
+                  <span class="font-semibold text-gray-500">Firmware</span>
+                  <span class="font-semibold">{{ deviceInfo.firmware }}</span>
+                </div>
+                <div
+                  class="flex justify-between p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded text-xs"
+                >
+                  <span class="font-semibold text-gray-500">Hardware</span>
+                  <span class="font-semibold">{{ deviceInfo.hardware }}</span>
+                </div>
+                <div
+                  class="flex justify-between p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded text-xs"
+                >
+                  <span class="font-semibold text-gray-500">LEDs</span>
+                  <span class="font-semibold">{{ deviceInfo.ledCount }}</span>
+                </div>
+                <div
+                  class="flex justify-between p-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded text-xs"
+                >
+                  <span class="font-semibold text-gray-500">Uptime</span>
+                  <span class="font-semibold">{{ deviceInfo.uptime }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                class="flex items-center justify-center gap-2 p-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg hover:scale-105 transition-all font-semibold text-xs"
+              >
+                <i class="fas fa-code"></i>
+                Schematics
+              </button>
+              <button
+                class="flex items-center justify-center gap-2 p-3 bg-lampy-accent text-white border border-lampy-accent rounded-lg hover:scale-105 transition-all font-semibold text-xs"
+              >
+                <i class="fas fa-shopping-cart"></i>
+                Buy Lampys
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
-        const { createApp } = Vue;
+      const { createApp } = Vue;
 
-        // Curated neopixel-optimized color palette (24 colors that ACTUALLY look good)
-        const CURATED_COLORS = [
-            { name: "Fire Red", value: "#ff0000" },
-            { name: "Sunset Orange", value: "#ff4500" },
-            { name: "Amber", value: "#ffbf00" },
-            { name: "Gold", value: "#ffd700" },
-            { name: "Lemon", value: "#ffff00" },
-            { name: "Lime", value: "#80ff00" },
-            { name: "Matrix Green", value: "#00ff00" },
-            { name: "Mint", value: "#00ff80" },
-            { name: "Cyan", value: "#00ffff" },
-            { name: "Sky", value: "#00bfff" },
-            { name: "Ocean Blue", value: "#0080ff" },
-            { name: "Deep Blue", value: "#0000ff" },
-            { name: "Royal Purple", value: "#4000ff" },
-            { name: "Violet", value: "#8000ff" },
-            { name: "Magenta", value: "#ff00ff" },
-            { name: "Hot Pink", value: "#ff1493" },
-            { name: "Rose", value: "#ff69b4" },
-            { name: "Coral", value: "#ff7f50" },
-            { name: "White", value: "#ffffff" },
-            { name: "Warm White", value: "#ffd4a3" },
-            { name: "Cool White", value: "#d4e4ff" },
-            { name: "Ice Blue", value: "#c0e0ff" },
-            { name: "Lavender", value: "#e6b3ff" },
-            { name: "Peach", value: "#ffd9b3" },
-        ];
+      // Curated neopixel-optimized color palette (24 colors that ACTUALLY look good)
+      const CURATED_COLORS = [
+        { name: "Fire Red", value: "#ff0000" },
+        { name: "Sunset Orange", value: "#ff4500" },
+        { name: "Amber", value: "#ffbf00" },
+        { name: "Gold", value: "#ffd700" },
+        { name: "Lemon", value: "#ffff00" },
+        { name: "Lime", value: "#80ff00" },
+        { name: "Matrix Green", value: "#00ff00" },
+        { name: "Mint", value: "#00ff80" },
+        { name: "Cyan", value: "#00ffff" },
+        { name: "Sky", value: "#00bfff" },
+        { name: "Ocean Blue", value: "#0080ff" },
+        { name: "Deep Blue", value: "#0000ff" },
+        { name: "Royal Purple", value: "#4000ff" },
+        { name: "Violet", value: "#8000ff" },
+        { name: "Magenta", value: "#ff00ff" },
+        { name: "Hot Pink", value: "#ff1493" },
+        { name: "Rose", value: "#ff69b4" },
+        { name: "Coral", value: "#ff7f50" },
+        { name: "White", value: "#ffffff" },
+        { name: "Warm White", value: "#ffd4a3" },
+        { name: "Cool White", value: "#d4e4ff" },
+        { name: "Ice Blue", value: "#c0e0ff" },
+        { name: "Lavender", value: "#e6b3ff" },
+        { name: "Peach", value: "#ffd9b3" },
+      ];
 
-        const PATTERN_DEFINITIONS = {
-            0: { name: "Cozy Fire", icon: "fas fa-fire", colors: ["#ff4500", "#ff6500", "#ffbf00"], originalColors: ["#ff4500", "#ff6500", "#ffbf00"] },
-            1: { name: "Shooting Stars", icon: "fas fa-meteor", colors: ["#8000ff", "#a000ff", "#c000ff"], originalColors: ["#8000ff", "#a000ff", "#c000ff"] },
-            2: { name: "Rainbow Magic", icon: "fas fa-rainbow", colors: ["#ff0000", "#ffff00", "#0000ff", "#00ff00"], originalColors: ["#ff0000", "#ffff00", "#0000ff", "#00ff00"] },
-            3: { name: "Gentle Fireflies", icon: "fas fa-sparkles", colors: ["#ffd700", "#ffbf00", "#ff8c00"], originalColors: ["#ffd700", "#ffbf00", "#ff8c00"] },
-            4: { name: "Field of Asters", icon: "fas fa-seedling", colors: ["#8000ff", "#a000ff", "#ffd700"], originalColors: ["#8000ff", "#a000ff", "#ffd700"] },
-            5: { name: "Ocean Waves", icon: "fas fa-water", colors: ["#0000ff", "#0080ff", "#00ffff"], originalColors: ["#0000ff", "#0080ff", "#00ffff"] },
-            6: { name: "Radioactive Kelp", icon: "fas fa-leaf", colors: ["#00ff00", "#80ff00", "#40ff00"], originalColors: ["#00ff00", "#80ff00", "#40ff00"] },
-            7: { name: "Mandarin Grove", icon: "fas fa-tree", colors: ["#ff4500", "#ff6500", "#008000"], originalColors: ["#ff4500", "#ff6500", "#008000"] },
-        };
+      const PATTERN_DEFINITIONS = {
+        0: {
+          name: "Cozy Fire",
+          icon: "fas fa-fire",
+          colors: ["#ff4500", "#ff6500", "#ffbf00"],
+          originalColors: ["#ff4500", "#ff6500", "#ffbf00"],
+        },
+        1: {
+          name: "Shooting Stars",
+          icon: "fas fa-meteor",
+          colors: ["#8000ff", "#a000ff", "#c000ff"],
+          originalColors: ["#8000ff", "#a000ff", "#c000ff"],
+        },
+        2: {
+          name: "Rainbow Magic",
+          icon: "fas fa-rainbow",
+          colors: ["#ff0000", "#ffff00", "#0000ff", "#00ff00"],
+          originalColors: ["#ff0000", "#ffff00", "#0000ff", "#00ff00"],
+        },
+        3: {
+          name: "Gentle Fireflies",
+          icon: "fas fa-sparkles",
+          colors: ["#ffd700", "#ffbf00", "#ff8c00"],
+          originalColors: ["#ffd700", "#ffbf00", "#ff8c00"],
+        },
+        4: {
+          name: "Field of Asters",
+          icon: "fas fa-seedling",
+          colors: ["#8000ff", "#a000ff", "#ffd700"],
+          originalColors: ["#8000ff", "#a000ff", "#ffd700"],
+        },
+        5: {
+          name: "Ocean Waves",
+          icon: "fas fa-water",
+          colors: ["#0000ff", "#0080ff", "#00ffff"],
+          originalColors: ["#0000ff", "#0080ff", "#00ffff"],
+        },
+        6: {
+          name: "Radioactive Kelp",
+          icon: "fas fa-leaf",
+          colors: ["#00ff00", "#80ff00", "#40ff00"],
+          originalColors: ["#00ff00", "#80ff00", "#40ff00"],
+        },
+        7: {
+          name: "Mandarin Grove",
+          icon: "fas fa-tree",
+          colors: ["#ff4500", "#ff6500", "#008000"],
+          originalColors: ["#ff4500", "#ff6500", "#008000"],
+        },
+      };
 
-        createApp({
-            data() {
-                return {
-                    isDark: localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches),
-                    showSettings: false,
-                    showWifiCredentials: false,
-                    showPassword: false,
-                    drawerCollapsed: true,
-                    connectionStatus: "connecting",
-                    currentPattern: null,
-                    brightness: 75,
-                    speed: 5,
-                    time: 0,
-                    patterns: [],
-                    curatedColors: CURATED_COLORS,
-                    selectedColorSlot: 0,
-                    wifiStatus: { ssid: "HomeNetwork", password: "********" },
-                    deviceInfo: { firmware: "v5.0.0", hardware: "ESP32-C3", ledCount: "72", uptime: "2d 14h" },
-                    liveUpdateTimeout: null,
-                    animationId: null,
-                    connectionInterval: null,
-                    cachedLEDPositions: [],
-                    cachedLEDPositionsMobile: [],
-                };
-            },
+      createApp({
+        data() {
+          return {
+            isDark:
+              localStorage.theme === "dark" ||
+              (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches),
+            showSettings: false,
+            showWifiCredentials: false,
+            showPassword: false,
+            drawerCollapsed: true,
+            connectionStatus: "connecting",
+            currentPattern: null,
+            brightness: 75,
+            speed: 5,
+            time: 0,
+            patterns: [],
+            curatedColors: CURATED_COLORS,
+            selectedColorSlot: 0,
+            colorPickerOpen: false,
+            colorPickerPosition: {},
+            wifiStatus: { ssid: "HomeNetwork", password: "********" },
+            deviceInfo: { firmware: "v5.0.0", hardware: "ESP32-C3", ledCount: "72", uptime: "2d 14h" },
+            liveUpdateTimeout: null,
+            animationId: null,
+            connectionInterval: null,
+            cachedLEDPositions: [],
+            cachedLEDPositionsMobile: [],
+          };
+        },
 
-            mounted() {
-                this.patterns = Object.entries(PATTERN_DEFINITIONS).map(([id, pattern]) => ({ id: parseInt(id), ...pattern }));
-                this.applyTheme();
-                this.initializeLampy();
-                this.precalculateLEDPositions();
-                this.startAnimationLoop();
-                this.checkConnection();
-                this.currentPattern = this.patterns[0];
-                window.addEventListener("beforeunload", () => this.beforeUnmount());
-            },
+        mounted() {
+          this.patterns = Object.entries(PATTERN_DEFINITIONS).map(([id, pattern]) => ({
+            id: parseInt(id),
+            ...pattern,
+          }));
+          this.applyTheme();
+          this.initializeLampy();
+          this.precalculateLEDPositions();
+          this.startAnimationLoop();
+          this.checkConnection();
+          this.currentPattern = this.patterns[0];
+          window.addEventListener("beforeunload", () => this.beforeUnmount());
+        },
 
-            methods: {
-                applyTheme() {
-                    document.documentElement.classList.toggle("dark", this.isDark);
-                    localStorage.theme = this.isDark ? "dark" : "light";
-                },
+        methods: {
+          applyTheme() {
+            document.documentElement.classList.toggle("dark", this.isDark);
+            localStorage.theme = this.isDark ? "dark" : "light";
+          },
 
-                toggleTheme() {
-                    this.isDark = !this.isDark;
-                    this.applyTheme();
-                },
+          toggleTheme() {
+            this.isDark = !this.isDark;
+            this.applyTheme();
+          },
 
-                async initializeLampy() {
-                    try {
-                        const response = await fetch("/api/status");
-                        if (response.ok) {
-                            const status = await response.json();
-                            const foundPattern = this.patterns.find(p => p.id === status.current_mode);
-                            if (foundPattern) this.currentPattern = foundPattern;
-                            this.brightness = Math.round((status.brightness / 255) * 100);
-                            this.speed = status.speed || 5;
-                            this.connectionStatus = "connected";
-                        } else {
-                            this.connectionStatus = "offline";
-                        }
-                    } catch (error) {
-                        this.connectionStatus = "offline";
-                        this.currentPattern = this.patterns[0];
-                    }
-                },
+          async initializeLampy() {
+            try {
+              const response = await fetch("/api/status");
+              if (response.ok) {
+                const status = await response.json();
+                const foundPattern = this.patterns.find((p) => p.id === status.current_mode);
+                if (foundPattern) this.currentPattern = foundPattern;
+                this.brightness = Math.round((status.brightness / 255) * 100);
+                this.speed = status.speed || 5;
+                this.connectionStatus = "connected";
+              } else {
+                this.connectionStatus = "offline";
+              }
+            } catch (error) {
+              this.connectionStatus = "offline";
+              this.currentPattern = this.patterns[0];
+            }
+          },
 
-                checkConnection() {
-                    this.connectionInterval = setInterval(async () => {
-                        try {
-                            const controller = new AbortController();
-                            const timeoutId = setTimeout(() => controller.abort(), 3000);
-                            const response = await fetch("/api/status", { signal: controller.signal });
-                            clearTimeout(timeoutId);
-                            this.connectionStatus = response.ok ? "connected" : "offline";
-                        } catch (error) {
-                            this.connectionStatus = "offline";
-                        }
-                    }, 10000);
-                },
+          checkConnection() {
+            this.connectionInterval = setInterval(async () => {
+              try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                const response = await fetch("/api/status", { signal: controller.signal });
+                clearTimeout(timeoutId);
+                this.connectionStatus = response.ok ? "connected" : "offline";
+              } catch (error) {
+                this.connectionStatus = "offline";
+              }
+            }, 10000);
+          },
 
-                selectPattern(pattern) {
-                    this.currentPattern = pattern;
-                    this.applySettingsLive();
-                },
+          selectPattern(pattern) {
+            this.currentPattern = pattern;
+            this.applySettingsLive();
+          },
 
-                getSpeedLabel(speed) {
-                    if (speed <= 3) return "Slow";
-                    if (speed <= 6) return "Medium";
-                    return "Fast";
-                },
+          getSpeedLabel(speed) {
+            if (speed <= 3) return "Slow";
+            if (speed <= 6) return "Medium";
+            return "Fast";
+          },
 
-                applyColor(colorValue) {
-                    if (!this.currentPattern) return;
-                    // Cycle through color slots
-                    this.currentPattern.colors[this.selectedColorSlot] = colorValue;
-                    this.selectedColorSlot = (this.selectedColorSlot + 1) % this.currentPattern.colors.length;
-                    this.applySettingsLive();
-                },
+          openColorPicker(slotIndex, event) {
+            this.selectedColorSlot = slotIndex;
+            this.colorPickerOpen = true;
 
-                isColorActive(colorValue) {
-                    if (!this.currentPattern) return false;
-                    return this.currentPattern.colors.includes(colorValue);
-                },
+            // Calculate popover position
+            const button = event.target.closest("button");
+            const rect = button.getBoundingClientRect();
+            const popoverWidth = 320;
+            const popoverHeight = 200;
 
-                resetColors() {
-                    if (this.currentPattern?.originalColors) {
-                        this.currentPattern.colors = [...this.currentPattern.originalColors];
-                        this.selectedColorSlot = 0;
-                        this.applySettingsLive();
-                    }
-                },
+            // Position above the button by default
+            let top = rect.top - popoverHeight - 10;
+            let left = rect.left + rect.width / 2 - popoverWidth / 2;
 
-                async updateWifiSettings() {
-                    try {
-                        const response = await fetch("/api/wifi", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ ssid: this.wifiStatus.ssid, password: this.wifiStatus.password }),
-                        });
-                        if (response.ok) alert("WiFi settings updated! Device will restart.");
-                    } catch (error) {
-                        alert("Failed to update WiFi settings");
-                    }
-                },
+            // If too close to top, position below
+            if (top < 10) {
+              top = rect.bottom + 10;
+            }
 
-                precalculateLEDPositions() {
-                    const totalLEDs = 72;
-                    const tubeHeight = 500, tubeRadius = 60;
-                    const tubeHeightMobile = 340, tubeRadiusMobile = 40;
+            // Keep within viewport horizontally
+            if (left < 10) {
+              left = 10;
+            } else if (left + popoverWidth > window.innerWidth - 10) {
+              left = window.innerWidth - popoverWidth - 10;
+            }
 
-                    this.cachedLEDPositions = [];
-                    for (let i = 1; i <= totalLEDs; i++) {
-                        const progress = (i - 1) / (totalLEDs - 1);
-                        const angle = progress * Math.PI * 17;
-                        const height = progress * tubeHeight;
-                        const x = Math.cos(angle) * tubeRadius;
-                        const z = Math.sin(angle) * tubeRadius;
-                        this.cachedLEDPositions.push({
-                            position: "absolute", left: "50%", top: "8%",
-                            transform: `translate3d(${x}px, ${height}px, ${z}px) translate(-50%, -50%)`,
-                        });
-                    }
+            this.colorPickerPosition = {
+              top: `${top}px`,
+              left: `${left}px`,
+            };
+          },
 
-                    this.cachedLEDPositionsMobile = [];
-                    for (let i = 1; i <= totalLEDs; i++) {
-                        const progress = (i - 1) / (totalLEDs - 1);
-                        const angle = progress * Math.PI * 12;
-                        const height = progress * tubeHeightMobile;
-                        const x = Math.cos(angle) * tubeRadiusMobile;
-                        const z = Math.sin(angle) * tubeRadiusMobile;
-                        this.cachedLEDPositionsMobile.push({
-                            position: "absolute", left: "50%", top: "8%",
-                            transform: `translate3d(${x}px, ${height}px, ${z}px) translate(-50%, -50%)`,
-                        });
-                    }
-                },
+          closeColorPicker() {
+            this.colorPickerOpen = false;
+          },
 
-                getLEDPosition(ledIndex) {
-                    return this.cachedLEDPositions[ledIndex - 1] || {};
-                },
+          applyColorToSlot(colorValue) {
+            if (!this.currentPattern) return;
+            this.currentPattern.colors[this.selectedColorSlot] = colorValue;
+            this.applySettingsLive();
+            this.closeColorPicker();
+          },
 
-                getLEDPositionMobile(ledIndex) {
-                    return this.cachedLEDPositionsMobile[ledIndex - 1] || {};
-                },
+          resetColors() {
+            if (this.currentPattern?.originalColors) {
+              this.currentPattern.colors = [...this.currentPattern.originalColors];
+              this.selectedColorSlot = 0;
+              this.applySettingsLive();
+            }
+          },
 
-                getLEDColor(ledIndex) {
-                    if (!this.currentPattern) return { backgroundColor: "#333333", opacity: 0.3 };
+          async updateWifiSettings() {
+            try {
+              const response = await fetch("/api/wifi", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ssid: this.wifiStatus.ssid, password: this.wifiStatus.password }),
+              });
+              if (response.ok) alert("WiFi settings updated! Device will restart.");
+            } catch (error) {
+              alert("Failed to update WiFi settings");
+            }
+          },
 
-                    const pattern = this.currentPattern;
-                    const colors = pattern.colors || [];
-                    const time = this.time * 0.001;
-                    const speed = this.speed / 10;
-                    const brightness = this.brightness / 100;
+          precalculateLEDPositions() {
+            const totalLEDs = 72;
+            const tubeHeight = 500,
+              tubeRadius = 60;
+            const tubeHeightMobile = 340,
+              tubeRadiusMobile = 40;
 
-                    let color, intensity;
+            this.cachedLEDPositions = [];
+            for (let i = 1; i <= totalLEDs; i++) {
+              const progress = (i - 1) / (totalLEDs - 1);
+              const angle = progress * Math.PI * 17;
+              const height = progress * tubeHeight;
+              const x = Math.cos(angle) * tubeRadius;
+              const z = Math.sin(angle) * tubeRadius;
+              this.cachedLEDPositions.push({
+                position: "absolute",
+                left: "50%",
+                top: "8%",
+                transform: `translate3d(${x}px, ${height}px, ${z}px) translate(-50%, -50%)`,
+              });
+            }
 
-                    switch (pattern.id) {
-                        case 0: // Fire
-                            const fireBase = Math.sin(time * speed * 3 + ledIndex * 0.2) * Math.cos(time * speed * 2 + ledIndex * 0.15);
-                            const fireFlicker = Math.random() * 0.3;
-                            const fireIntensity = Math.max(0, (fireBase + fireFlicker) * 0.5 + 0.4);
-                            const fireColorIndex = Math.min(Math.floor(fireIntensity * colors.length), colors.length - 1);
-                            color = colors[fireColorIndex] || "#ff4500";
-                            intensity = brightness * (0.3 + fireIntensity * 0.7);
-                            break;
+            this.cachedLEDPositionsMobile = [];
+            for (let i = 1; i <= totalLEDs; i++) {
+              const progress = (i - 1) / (totalLEDs - 1);
+              const angle = progress * Math.PI * 12;
+              const height = progress * tubeHeightMobile;
+              const x = Math.cos(angle) * tubeRadiusMobile;
+              const z = Math.sin(angle) * tubeRadiusMobile;
+              this.cachedLEDPositionsMobile.push({
+                position: "absolute",
+                left: "50%",
+                top: "8%",
+                transform: `translate3d(${x}px, ${height}px, ${z}px) translate(-50%, -50%)`,
+              });
+            }
+          },
 
-                        case 1: // Shooting Stars
-                            const meteorLength = 15;
-                            const meteorSpeed = speed * 4;
-                            const meteorPos = ((time * meteorSpeed) % (72 + meteorLength * 2)) - meteorLength;
-                            const distanceFromMeteor = Math.abs(ledIndex - meteorPos);
-                            intensity = distanceFromMeteor < meteorLength ? brightness * Math.max(0, 1 - distanceFromMeteor / meteorLength) : 0;
-                            color = colors[0] || "#8000ff";
-                            break;
+          getLEDPosition(ledIndex) {
+            return this.cachedLEDPositions[ledIndex - 1] || {};
+          },
 
-                        case 2: // Rainbow
-                            const rainbowPos = (time * speed + ledIndex * 0.08) % 1;
-                            const rainbowColorIndex = Math.floor(rainbowPos * colors.length);
-                            color = colors[rainbowColorIndex] || "#ff0000";
-                            intensity = brightness * (0.8 + Math.sin(time * speed * 2 + ledIndex * 0.1) * 0.2);
-                            break;
+          getLEDPositionMobile(ledIndex) {
+            return this.cachedLEDPositionsMobile[ledIndex - 1] || {};
+          },
 
-                        case 3: // Fireflies
-                            const sparkChance = 0.01;
-                            const isNewSpark = Math.random() < sparkChance;
-                            const pulseBase = Math.sin(time * speed + ledIndex * 0.3) * 0.5 + 0.5;
-                            const sparkleMultiplier = isNewSpark ? 2 : 1;
-                            intensity = brightness * pulseBase * sparkleMultiplier * 0.6;
-                            color = colors[Math.floor(Math.random() * colors.length)] || "#ffd700";
-                            break;
+          getLEDColor(ledIndex) {
+            if (!this.currentPattern) return { backgroundColor: "#333333", opacity: 0.3 };
 
-                        default: // Waves
-                            const wavePhase = time * speed + ledIndex * 0.1;
-                            const wave1 = Math.sin(wavePhase) * 0.5 + 0.5;
-                            const wave2 = Math.sin(wavePhase * 0.7 + Math.PI / 3) * 0.3 + 0.5;
-                            const combinedWave = (wave1 + wave2) / 2;
-                            const waveColorIndex = Math.floor(combinedWave * colors.length);
-                            color = colors[Math.min(waveColorIndex, colors.length - 1)] || "#00ff00";
-                            intensity = brightness * (0.4 + combinedWave * 0.6);
-                            break;
-                    }
+            const pattern = this.currentPattern;
+            const colors = pattern.colors || [];
+            const time = this.time * 0.001;
+            const speed = this.speed / 10;
+            const brightness = this.brightness / 100;
 
-                    return {
-                        backgroundColor: color,
-                        opacity: Math.max(0.2, Math.min(1, intensity)),
-                        boxShadow: intensity > 0.6 ? `0 0 8px ${color}66` : "none",
-                    };
-                },
+            let color, intensity;
 
-                getLEDIntensity(ledIndex) {
-                    return parseFloat(this.getLEDColor(ledIndex).opacity) || 0;
-                },
+            switch (pattern.id) {
+              case 0: // Fire
+                const fireBase =
+                  Math.sin(time * speed * 3 + ledIndex * 0.2) * Math.cos(time * speed * 2 + ledIndex * 0.15);
+                const fireFlicker = Math.random() * 0.3;
+                const fireIntensity = Math.max(0, (fireBase + fireFlicker) * 0.5 + 0.4);
+                const fireColorIndex = Math.min(Math.floor(fireIntensity * colors.length), colors.length - 1);
+                color = colors[fireColorIndex] || "#ff4500";
+                intensity = brightness * (0.3 + fireIntensity * 0.7);
+                break;
 
-                applySettingsLive() {
-                    clearTimeout(this.liveUpdateTimeout);
-                    this.liveUpdateTimeout = setTimeout(() => this.sendToLampy(), 100);
-                },
+              case 1: // Shooting Stars
+                const meteorLength = 15;
+                const meteorSpeed = speed * 4;
+                const meteorPos = ((time * meteorSpeed) % (72 + meteorLength * 2)) - meteorLength;
+                const distanceFromMeteor = Math.abs(ledIndex - meteorPos);
+                intensity =
+                  distanceFromMeteor < meteorLength
+                    ? brightness * Math.max(0, 1 - distanceFromMeteor / meteorLength)
+                    : 0;
+                color = colors[0] || "#8000ff";
+                break;
 
-                async sendToLampy() {
-                    if (!this.currentPattern) return;
-                    const settings = {
-                        pattern: this.currentPattern.id,
-                        brightness: Math.floor(this.brightness * 2.55),
-                        speed: this.speed,
-                        colors: this.currentPattern.colors || [],
-                        timestamp: Date.now(),
-                    };
+              case 2: // Rainbow
+                const rainbowPos = (time * speed + ledIndex * 0.08) % 1;
+                const rainbowColorIndex = Math.floor(rainbowPos * colors.length);
+                color = colors[rainbowColorIndex] || "#ff0000";
+                intensity = brightness * (0.8 + Math.sin(time * speed * 2 + ledIndex * 0.1) * 0.2);
+                break;
 
-                    if (this.connectionStatus === "connected") {
-                        try {
-                            await fetch("/api/update", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify(settings),
-                            });
-                        } catch (error) {
-                            console.error("Connection error:", error);
-                        }
-                    }
-                },
+              case 3: // Fireflies
+                const sparkChance = 0.01;
+                const isNewSpark = Math.random() < sparkChance;
+                const pulseBase = Math.sin(time * speed + ledIndex * 0.3) * 0.5 + 0.5;
+                const sparkleMultiplier = isNewSpark ? 2 : 1;
+                intensity = brightness * pulseBase * sparkleMultiplier * 0.6;
+                color = colors[Math.floor(Math.random() * colors.length)] || "#ffd700";
+                break;
 
-                startAnimationLoop() {
-                    let lastFrameTime = 0;
-                    const frameInterval = 1000 / 60;
-                    const animate = currentTime => {
-                        if (currentTime - lastFrameTime >= frameInterval) {
-                            this.time = currentTime;
-                            lastFrameTime = currentTime;
-                        }
-                        this.animationId = requestAnimationFrame(animate);
-                    };
-                    this.animationId = requestAnimationFrame(animate);
-                },
-            },
+              default: // Waves
+                const wavePhase = time * speed + ledIndex * 0.1;
+                const wave1 = Math.sin(wavePhase) * 0.5 + 0.5;
+                const wave2 = Math.sin(wavePhase * 0.7 + Math.PI / 3) * 0.3 + 0.5;
+                const combinedWave = (wave1 + wave2) / 2;
+                const waveColorIndex = Math.floor(combinedWave * colors.length);
+                color = colors[Math.min(waveColorIndex, colors.length - 1)] || "#00ff00";
+                intensity = brightness * (0.4 + combinedWave * 0.6);
+                break;
+            }
 
-            watch: {
-                brightness() { this.applySettingsLive(); },
-                speed() { this.applySettingsLive(); },
-            },
+            return {
+              backgroundColor: color,
+              opacity: Math.max(0.2, Math.min(1, intensity)),
+              boxShadow: intensity > 0.6 ? `0 0 8px ${color}66` : "none",
+            };
+          },
 
-            beforeUnmount() {
-                if (this.animationId) cancelAnimationFrame(this.animationId);
-                if (this.connectionInterval) clearInterval(this.connectionInterval);
-                if (this.liveUpdateTimeout) clearTimeout(this.liveUpdateTimeout);
-                this.cachedLEDPositions = [];
-                this.cachedLEDPositionsMobile = [];
-            },
-        }).mount("#app");
+          getLEDIntensity(ledIndex) {
+            return parseFloat(this.getLEDColor(ledIndex).opacity) || 0;
+          },
+
+          applySettingsLive() {
+            clearTimeout(this.liveUpdateTimeout);
+            this.liveUpdateTimeout = setTimeout(() => this.sendToLampy(), 100);
+          },
+
+          async sendToLampy() {
+            if (!this.currentPattern) return;
+            const settings = {
+              pattern: this.currentPattern.id,
+              brightness: Math.floor(this.brightness * 2.55),
+              speed: this.speed,
+              colors: this.currentPattern.colors || [],
+              timestamp: Date.now(),
+            };
+
+            if (this.connectionStatus === "connected") {
+              try {
+                await fetch("/api/update", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(settings),
+                });
+              } catch (error) {
+                console.error("Connection error:", error);
+              }
+            }
+          },
+
+          startAnimationLoop() {
+            let lastFrameTime = 0;
+            const frameInterval = 1000 / 60;
+            const animate = (currentTime) => {
+              if (currentTime - lastFrameTime >= frameInterval) {
+                this.time = currentTime;
+                lastFrameTime = currentTime;
+              }
+              this.animationId = requestAnimationFrame(animate);
+            };
+            this.animationId = requestAnimationFrame(animate);
+          },
+        },
+
+        watch: {
+          brightness() {
+            this.applySettingsLive();
+          },
+          speed() {
+            this.applySettingsLive();
+          },
+        },
+
+        beforeUnmount() {
+          if (this.animationId) cancelAnimationFrame(this.animationId);
+          if (this.connectionInterval) clearInterval(this.connectionInterval);
+          if (this.liveUpdateTimeout) clearTimeout(this.liveUpdateTimeout);
+          this.cachedLEDPositions = [];
+          this.cachedLEDPositionsMobile = [];
+        },
+      }).mount("#app");
     </script>
-</body>
-
+  </body>
 </html>

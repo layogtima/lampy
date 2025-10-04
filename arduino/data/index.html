@@ -216,7 +216,7 @@
   <body class="min-h-screen bg-lampy-cream dark:bg-lampy-dark text-lampy-dark dark:text-lampy-cream">
     <div id="app">
       <!-- Floating Buttons -->
-      <div class="fixed top-4 left-4 z-50">
+      <div class="fixed top-4 left-4 lg:right-4 lg:left-auto z-50">
         <button
           @click="showSettings = true"
           class="w-14 h-14 rounded-full glass-effect flex items-center justify-center shadow-lg hover:scale-105 hover:bg-lampy-accent hover:text-white transition-all duration-300"
@@ -261,7 +261,7 @@
         </button>
       </div>
 
-      <div class="fixed top-4 right-4 z-50">
+      <div class="fixed top-4 right-4 lg:right-20 z-50">
         <button
           @click="toggleTheme"
           class="w-14 h-14 rounded-full glass-effect flex items-center justify-center shadow-lg hover:scale-105 hover:bg-lampy-accent hover:text-white transition-all duration-300"

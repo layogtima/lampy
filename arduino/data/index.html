@@ -850,9 +850,37 @@
             }, 10000);
           },
 
-          selectPattern(pattern) {
+          async selectPattern(pattern) {
+            // First, just change the mode without sending colors
+            try {
+              const response = await fetch("/api/update", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  pattern: pattern.id,
+                  brightness: Math.floor(this.brightness * 2.55),
+                  params: { cycleSpeed: this.speed },
+                }),
+              });
+
+              if (response.ok) {
+                // Fetch the current colors from ESP32 for this pattern
+                const statusResponse = await fetch("/api/status");
+                if (statusResponse.ok) {
+                  const status = await statusResponse.json();
+                  if (status.current_colors) {
+                    // Update the pattern object with saved colors BEFORE setting currentPattern
+                    // This prevents watchers from triggering with stale default colors
+                    pattern.colors = [...status.current_colors];
+                  }
+                }
+              }
+            } catch (error) {
+              console.error("Error switching pattern:", error);
+            }
+
+            // Set currentPattern AFTER colors are updated from ESP32
             this.currentPattern = pattern;
-            this.applySettingsLive();
           },
 
           getSpeedLabel(speed) {

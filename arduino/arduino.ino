@@ -77,9 +77,9 @@ int currentBrightness = 50;       // Keeps track of current brightness while fad
 // ===== CONFIGURABLE PATTERN COLORS =====
 // These can be changed in real-time via the API
 uint32_t patternColors[3] = {
-    0xFF0000, // Default color 1 (red)
-    0x00FF00, // Default color 2 (green)
-    0x0000FF  // Default color 3 (blue)
+  0xFF0000, // Default color 1 (red)
+  0x00FF00, // Default color 2 (green)
+  0x0000FF  // Default color 3 (blue)
 };
 
 // Pattern parameters
@@ -221,22 +221,23 @@ void loop()
 
 // ===== GAMMA CORRECTION TABLE =====
 const uint8_t PROGMEM gamma8[] = {
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
-    1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2,
-    2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5,
-    5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10,
-    10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
-    17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
-    25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
-    37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
-    51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
-    69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
-    90, 92, 93, 95, 96, 98, 99, 101, 102, 104, 105, 107, 109, 110, 112, 114,
-    115, 117, 119, 120, 122, 124, 126, 127, 129, 131, 133, 135, 137, 138, 140, 142,
-    144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 167, 169, 171, 173, 175,
-    177, 180, 182, 184, 186, 189, 191, 193, 196, 198, 200, 203, 205, 208, 210, 213,
-    215, 218, 220, 223, 225, 228, 231, 233, 236, 239, 241, 244, 247, 249, 252, 255};
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+  1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2,
+  2, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5,
+  5, 6, 6, 6, 6, 7, 7, 7, 7, 8, 8, 8, 9, 9, 9, 10,
+  10, 10, 11, 11, 11, 12, 12, 13, 13, 13, 14, 14, 15, 15, 16, 16,
+  17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 24, 24, 25,
+  25, 26, 27, 27, 28, 29, 29, 30, 31, 32, 32, 33, 34, 35, 35, 36,
+  37, 38, 39, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 50,
+  51, 52, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 66, 67, 68,
+  69, 70, 72, 73, 74, 75, 77, 78, 79, 81, 82, 83, 85, 86, 87, 89,
+  90, 92, 93, 95, 96, 98, 99, 101, 102, 104, 105, 107, 109, 110, 112, 114,
+  115, 117, 119, 120, 122, 124, 126, 127, 129, 131, 133, 135, 137, 138, 140, 142,
+  144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 167, 169, 171, 173, 175,
+  177, 180, 182, 184, 186, 189, 191, 193, 196, 198, 200, 203, 205, 208, 210, 213,
+  215, 218, 220, 223, 225, 228, 231, 233, 236, 239, 241, 244, 247, 249, 252, 255
+};
 
 // ===== PIXEL SETTING WITH GAMMA CORRECTION =====
 void setGammaPixel(int Pixel, byte red, byte green, byte blue)
@@ -343,10 +344,10 @@ void kelp(int cycleSpeed)
 {
   static int cycles = 0; // Keeps track of where we are in the wave pattern
 
-  // Use configurable colors (default to kelp colors if not customized)
-  uint32_t color1 = patternColors[0]; // User-customizable color 1
-  uint32_t color2 = patternColors[1]; // User-customizable color 2
-  uint32_t color3 = patternColors[2]; // User-customizable color 3
+  // Use configurable colors
+  uint32_t color1 = patternColors[0];
+  uint32_t color2 = patternColors[1];
+  uint32_t color3 = patternColors[2];
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++)
@@ -365,10 +366,10 @@ void mandarin(int cycleSpeed)
 {
   static int cycles = 0; // Keeps track of where we are in the wave pattern
 
-  // Use configurable colors (default to mandarin colors if not customized)
-  uint32_t color1 = patternColors[0]; // User-customizable color 1
-  uint32_t color2 = patternColors[1]; // User-customizable color 2
-  uint32_t color3 = patternColors[2]; // User-customizable color 3
+  // Use configurable colors
+  uint32_t color1 = patternColors[0];
+  uint32_t color2 = patternColors[1];
+  uint32_t color3 = patternColors[2];
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++)
@@ -395,10 +396,10 @@ void aster(int cycleSpeed)
 {
   static int cycles = 0; // Keeps track of where we are in the wave pattern
 
-  // Use configurable colors (default to aster colors if not customized)
-  uint32_t color1 = patternColors[0]; // User-customizable color 1
-  uint32_t color2 = patternColors[1]; // User-customizable color 2
-  uint32_t color3 = patternColors[2]; // User-customizable color 3
+  // Use configurable colors
+  uint32_t color1 = patternColors[0];
+  uint32_t color2 = patternColors[1];
+  uint32_t color3 = patternColors[2];
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++)
@@ -833,9 +834,10 @@ void setupWebServer()
   server.on("/api/status", HTTP_GET, handleGetStatus);
   server.on("/api/mode", HTTP_POST, handleSwitchMode);
   server.on("/api/mode", HTTP_GET, []()
-            {
+  {
     String json = "{\"current_mode\":" + String(state) + "}";
-    server.send(200, "application/json", json); });
+    server.send(200, "application/json", json);
+  });
   server.on("/api/update", HTTP_POST, handleUpdate);
   server.on("/api/discover", HTTP_GET, handleDiscover);
   server.on("/api/wifi-reset", HTTP_POST, handleWiFiReset);
@@ -843,9 +845,11 @@ void setupWebServer()
   // File upload endpoints
   server.on("/upload", HTTP_GET, handleUploadPage);
   server.on("/upload", HTTP_POST, []()
-            { server.send(200, "text/plain", ""); }, handleFileUpload);
+  {
+    server.send(200, "text/plain", "");
+  }, handleFileUpload);
   server.on("/api/files", HTTP_GET, []()
-            {
+  {
     String json = "{\"files\":[";
     File root = SPIFFS.open("/");
     File file = root.openNextFile();
@@ -857,7 +861,8 @@ void setupWebServer()
       first = false;
     }
     json += "]}";
-    server.send(200, "application/json", json); });
+    server.send(200, "application/json", json);
+  });
 
   // Enable CORS for all origins
   server.enableCORS(true);
@@ -1401,50 +1406,50 @@ void setDefaultColorsForMode(int mode)
 {
   switch (mode)
   {
-  case 0:                                           // Fire
-    patternColors[0] = hexStringToColor("#ff4500"); // Orange red
-    patternColors[1] = hexStringToColor("#ff6600"); // Orange
-    patternColors[2] = hexStringToColor("#ff8800"); // Light orange
-    break;
-  case 1:                                           // Shooting Stars (Purple)
-    patternColors[0] = hexStringToColor("#ff00ff"); // Magenta
-    patternColors[1] = hexStringToColor("#8800ff"); // Purple
-    patternColors[2] = hexStringToColor("#4400ff"); // Deep purple
-    break;
-  case 2:                                           // Rainbow
-    patternColors[0] = hexStringToColor("#ff0000"); // Red
-    patternColors[1] = hexStringToColor("#00ff00"); // Green
-    patternColors[2] = hexStringToColor("#0000ff"); // Blue
-    break;
-  case 3:                                           // Fireflies (Amber)
-    patternColors[0] = hexStringToColor("#ffb400"); // Amber
-    patternColors[1] = hexStringToColor("#ff9900"); // Orange amber
-    patternColors[2] = hexStringToColor("#ff7700"); // Deep amber
-    break;
-  case 4:                                           // Aster Field
-    patternColors[0] = hexStringToColor("#ec5602"); // Deep yellow
-    patternColors[1] = hexStringToColor("#5518dd"); // Purple
-    patternColors[2] = hexStringToColor("#290849"); // Violet
-    break;
-  case 5:                                           // Ocean Waves
-    patternColors[0] = hexStringToColor("#0000ff"); // Deep blue
-    patternColors[1] = hexStringToColor("#00ff8c"); // Cyan
-    patternColors[2] = hexStringToColor("#008cff"); // Sky blue
-    break;
-  case 6:                                           // Radioactive Kelp
-    patternColors[0] = hexStringToColor("#46ff00"); // Lime
-    patternColors[1] = hexStringToColor("#00ff00"); // Bright green
-    patternColors[2] = hexStringToColor("#00ff3c"); // Mint green
-    break;
-  case 7:                                           // Mandarin Trees
-    patternColors[0] = hexStringToColor("#d13528"); // Deep orange
-    patternColors[1] = hexStringToColor("#067333"); // Foliage
-    patternColors[2] = hexStringToColor("#034e23"); // Arbor green
-    break;
-  default:
-    patternColors[0] = hexStringToColor("#ffffff"); // White
-    patternColors[1] = hexStringToColor("#ffffff"); // White
-    patternColors[2] = hexStringToColor("#ffffff"); // White
+    case 0:                                           // Fire
+      patternColors[0] = hexStringToColor("#ff4500"); // Orange red
+      patternColors[1] = hexStringToColor("#ff6600"); // Orange
+      patternColors[2] = hexStringToColor("#ff8800"); // Light orange
+      break;
+    case 1:                                           // Shooting Stars (Purple)
+      patternColors[0] = hexStringToColor("#ff00ff"); // Magenta
+      patternColors[1] = hexStringToColor("#8800ff"); // Purple
+      patternColors[2] = hexStringToColor("#4400ff"); // Deep purple
+      break;
+    case 2:                                           // Rainbow
+      patternColors[0] = hexStringToColor("#ff0000"); // Red
+      patternColors[1] = hexStringToColor("#00ff00"); // Green
+      patternColors[2] = hexStringToColor("#0000ff"); // Blue
+      break;
+    case 3:                                           // Fireflies (Amber)
+      patternColors[0] = hexStringToColor("#ffb400"); // Amber
+      patternColors[1] = hexStringToColor("#ff9900"); // Orange amber
+      patternColors[2] = hexStringToColor("#ff7700"); // Deep amber
+      break;
+    case 4:                                           // Aster Field
+      patternColors[0] = hexStringToColor("#ec5602"); // Deep yellow
+      patternColors[1] = hexStringToColor("#5518dd"); // Purple
+      patternColors[2] = hexStringToColor("#290849"); // Violet
+      break;
+    case 5:                                           // Ocean Waves
+      patternColors[0] = hexStringToColor("#0000ff"); // Deep blue
+      patternColors[1] = hexStringToColor("#00ff8c"); // Cyan
+      patternColors[2] = hexStringToColor("#008cff"); // Sky blue
+      break;
+    case 6:                                           // Radioactive Kelp
+      patternColors[0] = hexStringToColor("#46ff00"); // Lime
+      patternColors[1] = hexStringToColor("#00ff00"); // Bright green
+      patternColors[2] = hexStringToColor("#00ff3c"); // Mint green
+      break;
+    case 7:                                           // Mandarin Trees
+      patternColors[0] = hexStringToColor("#d13528"); // Deep orange
+      patternColors[1] = hexStringToColor("#067333"); // Foliage
+      patternColors[2] = hexStringToColor("#034e23"); // Arbor green
+      break;
+    default:
+      patternColors[0] = hexStringToColor("#ffffff"); // White
+      patternColors[1] = hexStringToColor("#ffffff"); // White
+      patternColors[2] = hexStringToColor("#ffffff"); // White
   }
 }
 
@@ -1469,42 +1474,49 @@ void handleWiFiReset()
 // ===== SAVE COLORS FOR MODE =====
 void saveColorsForMode(int mode)
 {
-  // Save colors for the specific mode
-  // We use mode-specific keys like "mode0_c0", "mode0_c1", "mode0_c2"
-  String keyPrefix = "mode" + String(mode) + "_c";
+  // Save colors for the specific mode using dedicated storage
+  // Mode 1 (Shooting Stars) and Mode 3 (Fireflies) only save 1 color
+  // All other modes save 3 colors
+  String keyPrefix = "m" + String(mode) + "_c";
 
-  for (int i = 0; i < 3; i++)
+  int numColors = 3;
+  if (mode == 1 || mode == 3) {
+    numColors = 1; // Shooting Stars and Fireflies only use 1 color
+  }
+
+  for (int i = 0; i < numColors; i++)
   {
     String key = keyPrefix + String(i);
     preferences.putUInt(key.c_str(), patternColors[i]);
+    Serial.printf("Saved color %d for mode %d: #%06X\n", i, mode, patternColors[i]);
   }
 
-  Serial.printf("Saved colors for mode %d\n", mode);
+  Serial.printf("Saved %d color(s) for mode %d\n", numColors, mode);
 }
 
 // ===== LOAD COLORS FOR MODE =====
 void loadColorsForMode(int mode)
 {
-  // Load colors for the specific mode
-  // Check if colors exist in preferences, otherwise use defaults
-  String keyPrefix = "mode" + String(mode) + "_c";
-  bool hasCustomColors = false;
+  // First set defaults for ALL 3 colors (ensures clean state, no color bleeding)
+  setDefaultColorsForMode(mode);
 
-  for (int i = 0; i < 3; i++)
+  // Then load saved colors for this specific mode
+  String keyPrefix = "m" + String(mode) + "_c";
+
+  int numColors = 3;
+  if (mode == 1 || mode == 3) {
+    numColors = 1; // Shooting Stars and Fireflies only use 1 color
+  }
+
+  for (int i = 0; i < numColors; i++)
   {
     String key = keyPrefix + String(i);
     if (preferences.isKey(key.c_str()))
     {
       patternColors[i] = preferences.getUInt(key.c_str(), 0);
-      hasCustomColors = true;
+      Serial.printf("Loaded custom color %d for mode %d: #%06X\n", i, mode, patternColors[i]);
     }
   }
 
-  // If no custom colors saved, use defaults
-  if (!hasCustomColors)
-  {
-    setDefaultColorsForMode(mode);
-  }
-
-  Serial.printf("Loaded colors for mode %d\n", mode);
+  Serial.printf("Loaded %d color(s) for mode %d\n", numColors, mode);
 }

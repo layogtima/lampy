@@ -157,7 +157,11 @@ void loop()
   { // SHOOTING STARS MODE
     if ((unsigned long)(millis() - previousMillis) >= interval)
     {
-      spirula(0xff, 0, 0xff, 30, 48, true, 60);
+      // Extract RGB from first pattern color
+      uint8_t r = (patternColors[0] >> 16) & 0xFF;
+      uint8_t g = (patternColors[0] >> 8) & 0xFF;
+      uint8_t b = patternColors[0] & 0xFF;
+      spirula(r, g, b, 30, 48, true, 60);
       previousMillis = millis();
     }
   }
@@ -339,10 +343,10 @@ void kelp(int cycleSpeed)
 {
   static int cycles = 0; // Keeps track of where we are in the wave pattern
 
-  // Kelp colors! These make it look waves of radioactive kelp swaying in the breeze:
-  uint32_t color1 = strip.Color(70, 255, 0); // Lime (like a fresh lemon)
-  uint32_t color2 = strip.Color(0, 255, 0);  // Bright Green (like the forest during daylight)
-  uint32_t color3 = strip.Color(0, 255, 60); // Mint Green (like a fresh leaf)
+  // Use configurable colors (default to kelp colors if not customized)
+  uint32_t color1 = patternColors[0]; // User-customizable color 1
+  uint32_t color2 = patternColors[1]; // User-customizable color 2
+  uint32_t color3 = patternColors[2]; // User-customizable color 3
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++)
@@ -361,10 +365,10 @@ void mandarin(int cycleSpeed)
 {
   static int cycles = 0; // Keeps track of where we are in the wave pattern
 
-  // Aster colors! Imagine an orchard of mandarins:
-  uint32_t color1 = strip.Color(209, 53, 40); // Deep Orange
-  uint32_t color2 = strip.Color(6, 115, 51);  // Foliage
-  uint32_t color3 = strip.Color(3, 78, 35);   // Arbor Green
+  // Use configurable colors (default to mandarin colors if not customized)
+  uint32_t color1 = patternColors[0]; // User-customizable color 1
+  uint32_t color2 = patternColors[1]; // User-customizable color 2
+  uint32_t color3 = patternColors[2]; // User-customizable color 3
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++)
@@ -391,10 +395,10 @@ void aster(int cycleSpeed)
 {
   static int cycles = 0; // Keeps track of where we are in the wave pattern
 
-  // Aster colors! Imagine a field of asters:
-  uint32_t color1 = strip.Color(236, 182, 2); // Deep Yellow (center of an aster)
-  uint32_t color2 = strip.Color(85, 24, 93);  // Purple (petals of asters)
-  uint32_t color3 = strip.Color(41, 8, 73);   // Violet (hues of asters)
+  // Use configurable colors (default to aster colors if not customized)
+  uint32_t color1 = patternColors[0]; // User-customizable color 1
+  uint32_t color2 = patternColors[1]; // User-customizable color 2
+  uint32_t color3 = patternColors[2]; // User-customizable color 3
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++)
@@ -461,28 +465,41 @@ void fire(int Cooling, int Sparking, int SpeedDelay)
 }
 
 // ===== FIRE COLOR HELPER =====
-// This turns temperature numbers into pretty fire colors
+// This turns temperature numbers into pretty fire colors using user-defined colors
 void setPixelHeatColor(int Pixel, byte temperature)
 {
   // Scale 'heat' down from 0-255 to 0-191
   byte t192 = round((temperature / 255.0) * 191);
 
-  byte heatramp = t192 & 0x3F; // 0..63
-  heatramp <<= 2;              // scale up to 0..252
+  uint32_t color;
 
-  // Choose colors based on how hot the pixel is
   if (t192 > 0x80)
-  { // Super hot! White-ish yellow
-    setPixel(Pixel, 255, 255, heatramp);
+  {
+    // Super hot! Blend color2 → color3 (e.g., orange → yellow)
+    byte blend = ((t192 - 0x80) * 2); // 0-255 blend factor
+    color = interpolateColor(patternColors[1], patternColors[2], blend);
   }
   else if (t192 > 0x40)
-  { // Medium hot! Orange
-    setPixel(Pixel, 255, heatramp, 0);
+  {
+    // Medium hot! Blend color1 → color2 (e.g., red → orange)
+    byte blend = ((t192 - 0x40) * 4); // 0-255 blend factor
+    color = interpolateColor(patternColors[0], patternColors[1], blend);
   }
   else
-  { // Not so hot! Red
-    setPixel(Pixel, heatramp, 0, 0);
+  {
+    // Cool! Just use color1 (e.g., red) scaled by heat
+    byte scale = t192 * 4; // 0-255 scale factor
+    uint8_t r = ((patternColors[0] >> 16) & 0xFF) * scale / 255;
+    uint8_t g = ((patternColors[0] >> 8) & 0xFF) * scale / 255;
+    uint8_t b = (patternColors[0] & 0xFF) * scale / 255;
+    color = strip.Color(r, g, b);
   }
+
+  // Extract RGB and set pixel
+  uint8_t r = (color >> 16) & 0xFF;
+  uint8_t g = (color >> 8) & 0xFF;
+  uint8_t b = color & 0xFF;
+  setPixel(Pixel, r, g, b);
 }
 
 // ===== PIXEL SETTING HELPER =====
@@ -607,11 +624,16 @@ void firefly(int sparkSpeed, int pulseSpeed, int newFlyChance, int fadeAmount)
           pulseCycle[i] += 0.1;
           float pulseValue = sin(pulseCycle[i]) * 0.2 + 0.8;
 
-          // Warm amber glow
+          // Extract RGB from first pattern color and scale by brightness
+          uint8_t baseR = (patternColors[0] >> 16) & 0xFF;
+          uint8_t baseG = (patternColors[0] >> 8) & 0xFF;
+          uint8_t baseB = patternColors[0] & 0xFF;
+
           byte brightness = fireflyBrightness[i] * pulseValue;
-          byte red = (brightness * 255) / 255;
-          byte green = (brightness * 180) / 255;
-          setPixel(i, red, green, 0);
+          byte red = (brightness * baseR) / 255;
+          byte green = (brightness * baseG) / 255;
+          byte blue = (brightness * baseB) / 255;
+          setPixel(i, red, green, blue);
 
           if (pulseCycle[i] > PI * 2)
           {
@@ -620,11 +642,16 @@ void firefly(int sparkSpeed, int pulseSpeed, int newFlyChance, int fadeAmount)
         }
         else
         {
-          // Fade out gently
+          // Fade out gently - extract RGB from first pattern color
+          uint8_t baseR = (patternColors[0] >> 16) & 0xFF;
+          uint8_t baseG = (patternColors[0] >> 8) & 0xFF;
+          uint8_t baseB = patternColors[0] & 0xFF;
+
           float fadeRatio = (float)fireflyBrightness[i] / 255.0;
-          byte red = (fireflyBrightness[i] * 255) / 255;
-          byte green = (fireflyBrightness[i] * 180) / 255;
-          setPixel(i, red * fadeRatio, green * fadeRatio, 0);
+          byte red = (fireflyBrightness[i] * baseR) / 255;
+          byte green = (fireflyBrightness[i] * baseG) / 255;
+          byte blue = (fireflyBrightness[i] * baseB) / 255;
+          setPixel(i, red * fadeRatio, green * fadeRatio, blue * fadeRatio);
 
           if (fireflyBrightness[i] > 40)
           {

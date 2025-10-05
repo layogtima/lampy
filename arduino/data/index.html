@@ -194,22 +194,6 @@
       .hide-scrollbar::-webkit-scrollbar {
         display: none;
       }
-
-      /* Color swatch hover effect */
-      .color-swatch {
-        transition: all 0.2s ease;
-        cursor: pointer;
-      }
-
-      .color-swatch:hover {
-        transform: scale(1.15);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      }
-
-      .color-swatch.active {
-        transform: scale(1.1);
-        box-shadow: 0 0 0 3px rgba(255, 69, 0, 0.5);
-      }
     </style>
   </head>
 
@@ -349,8 +333,12 @@
                       v-for="(swatch, index) in curatedColors"
                       :key="index"
                       @click="applyColorToSlot(swatch.value)"
-                      :class="{ 'active': currentPattern.colors[selectedColorSlot] === swatch.value }"
-                      class="color-swatch aspect-square rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-sm"
+                      class="color-swatch aspect-square rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-800 dark:hover:border-white"
+                      :class="[
+                        currentPattern.colors[selectedColorSlot] === swatch.value
+                          ? 'scale-105 outline outline-2 outline-gray-800 dark:outline-white border-white dark:border-gray-800 shadow-none dark:shadow-none'
+                          : 'shadow-md shadow-gray-400 dark:shadow-gray-700 hover:shadow-lg hover:shadow-gray-500 dark:hover:shadow-gray-600 border-gray-500/50 dark:border-white/50'
+                      ]"
                       :style="{ backgroundColor: swatch.value }"
                       :title="swatch.name"
                     ></button>

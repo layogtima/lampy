@@ -46,6 +46,8 @@ String getContentType(String filename);                                         
 uint32_t hexStringToColor(String hexStr);                                                                                         // Converts hex string to color
 void updatePatternColors(String colorsJson);                                                                                      // Updates pattern colors from JSON
 void setDefaultColorsForMode(int mode);                                                                                           // Sets default colors for current mode
+void saveColorsForMode(int mode);                                                                                                 // Saves colors for a specific mode to preferences
+void loadColorsForMode(int mode);                                                                                                 // Loads colors for a specific mode from preferences
 void rainbow(int cycleSpeed);                                                                                                     // Makes a rainbow pattern
 void fire(int Cooling, int Sparking, int SpeedDelay);                                                                             // Makes fire effects
 void firefly(int sparkSpeed, int pulseSpeed, int newFlyChance, int fadeAmount);                                                   // Makes firefly lights
@@ -97,7 +99,7 @@ void setup()
   strip.setBrightness(brightness); // Apply saved brightness to strip
   strip.show();                    // Makes sure all lights start turned off
 
-  setDefaultColorsForMode(state); // Initialize colors for current mode
+  loadColorsForMode(state); // Load saved colors for current mode (or use defaults)
 
   setupSPIFFS();    // Set up file system for web files
   setupWiFi();      // Connect to WiFi network
@@ -946,6 +948,7 @@ void handleSwitchMode()
       {
         state = newMode;
         preferences.putInt("state", state);
+        loadColorsForMode(state); // Load colors for the new mode
 
         server.send(200, "application/json", "{\"success\":true,\"mode\":" + String(state) + "}");
         return;
@@ -996,7 +999,7 @@ void handleUpdate()
       { // Only change if it's actually different
         state = newMode;
         preferences.putInt("state", state);
-        setDefaultColorsForMode(state); // Set default colors for new mode
+        loadColorsForMode(state); // Load saved colors for new mode
       }
       if (updated)
         response += ",";
@@ -1059,6 +1062,7 @@ void handleUpdate()
     {
       String colorsArray = body.substring(arrayStart, arrayEnd + 1);
       updatePatternColors(colorsArray);
+      saveColorsForMode(state); // Save the updated colors for current mode
 
       if (updated)
         response += ",";
@@ -1433,4 +1437,47 @@ void handleWiFiReset()
 
   // Restart the device to enter setup mode
   ESP.restart();
+}
+
+// ===== SAVE COLORS FOR MODE =====
+void saveColorsForMode(int mode)
+{
+  // Save colors for the specific mode
+  // We use mode-specific keys like "mode0_c0", "mode0_c1", "mode0_c2"
+  String keyPrefix = "mode" + String(mode) + "_c";
+
+  for (int i = 0; i < 3; i++)
+  {
+    String key = keyPrefix + String(i);
+    preferences.putUInt(key.c_str(), patternColors[i]);
+  }
+
+  Serial.printf("Saved colors for mode %d\n", mode);
+}
+
+// ===== LOAD COLORS FOR MODE =====
+void loadColorsForMode(int mode)
+{
+  // Load colors for the specific mode
+  // Check if colors exist in preferences, otherwise use defaults
+  String keyPrefix = "mode" + String(mode) + "_c";
+  bool hasCustomColors = false;
+
+  for (int i = 0; i < 3; i++)
+  {
+    String key = keyPrefix + String(i);
+    if (preferences.isKey(key.c_str()))
+    {
+      patternColors[i] = preferences.getUInt(key.c_str(), 0);
+      hasCustomColors = true;
+    }
+  }
+
+  // If no custom colors saved, use defaults
+  if (!hasCustomColors)
+  {
+    setDefaultColorsForMode(mode);
+  }
+
+  Serial.printf("Loaded colors for mode %d\n", mode);
 }

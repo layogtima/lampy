@@ -271,7 +271,7 @@
                   v-for="pattern in patterns"
                   :key="pattern.id"
                   @click="selectPattern(pattern)"
-                  :class="{ 'border-lampy-accent dark:border-lampy-accent border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
+                  :class="{ 'border-black dark:border-white border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
                   class="aspect-square bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:scale-105 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
                 >
                   <i
@@ -721,8 +721,8 @@
         2: {
           name: "Rainbow Magic",
           icon: "fas fa-rainbow",
-          colors: ["#ff0000", "#ffff00", "#0000ff", "#00ff00"],
-          originalColors: ["#ff0000", "#ffff00", "#0000ff", "#00ff00"],
+          colors: ["#ff0000", "#00ff00", "#0000ff"],
+          originalColors: ["#ff0000", "#00ff00", "#0000ff"],
         },
         3: {
           name: "Gentle Fireflies",
@@ -817,7 +817,13 @@
               if (response.ok) {
                 const status = await response.json();
                 const foundPattern = this.patterns.find((p) => p.id === status.current_mode);
-                if (foundPattern) this.currentPattern = foundPattern;
+                if (foundPattern) {
+                  this.currentPattern = foundPattern;
+                  // Load saved colors from ESP32
+                  if (status.current_colors && status.current_colors.length === 3) {
+                    this.currentPattern.colors = [...status.current_colors];
+                  }
+                }
                 this.brightness = Math.round((status.brightness / 255) * 100);
                 this.speed = status.speed || 5;
                 this.connectionStatus = "connected";

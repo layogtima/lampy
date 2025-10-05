@@ -291,7 +291,7 @@
                 Pattern Colors
               </h3>
               <div class="flex items-start justify-between gap-2 relative">
-                <div class="flex gap-2 flex-1">
+                <div class="flex gap-2 flex-1 choosen-colors">
                   <div v-for="(color, index) in currentPattern.colors" :key="index" class="relative">
                     <button
                       @click="openColorPicker(index, $event)"
@@ -860,18 +860,27 @@
 
             // Calculate popover position
             const button = event.target.closest("button");
-            const rect = button.getBoundingClientRect();
+            const chosenColorsContainer = button.closest(".choosen-colors");
+            const rect = chosenColorsContainer.getBoundingClientRect();
             const popoverWidth = 320;
             const popoverHeight = 200;
 
-            // Position above the button by default
-            let top = rect.top - popoverHeight - 10;
-            let left = rect.left + rect.width / 2 - popoverWidth / 2;
+            // Calculate available space above and below
+            const spaceAbove = rect.top;
+            const spaceBelow = window.innerHeight - rect.bottom;
 
-            // If too close to top, position below
-            if (top < 10) {
+            // Position based on available space
+            let top;
+            if (spaceBelow >= popoverHeight + 10 || spaceBelow > spaceAbove) {
+              // Position below if there's enough space or more space below than above
               top = rect.bottom + 10;
+            } else {
+              // Position above
+              top = rect.top - popoverHeight - 10;
             }
+
+            // Center horizontally relative to the container
+            let left = rect.left + rect.width / 2 - popoverWidth / 2;
 
             // Keep within viewport horizontally
             if (left < 10) {

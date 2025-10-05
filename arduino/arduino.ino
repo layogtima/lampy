@@ -925,9 +925,14 @@ void handleGetStatus()
   json += "\"brightness\":" + String(brightness) + ",";
   json += "\"uptime\":" + String(millis()) + ",";
 
-  // Add current colors (from active pattern colors)
+  // Add current colors (only return colors that this mode actually uses)
+  int numColors = 3;
+  if (state == 1 || state == 3) {
+    numColors = 1; // Shooting Stars and Fireflies only use 1 color
+  }
+
   json += "\"current_colors\":[";
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < numColors; i++)
   {
     if (i > 0)
       json += ",";

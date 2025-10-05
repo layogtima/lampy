@@ -819,8 +819,8 @@
                 const foundPattern = this.patterns.find((p) => p.id === status.current_mode);
                 if (foundPattern) {
                   this.currentPattern = foundPattern;
-                  // Load saved colors from ESP32
-                  if (status.current_colors && status.current_colors.length === 3) {
+                  // Load saved colors from ESP32 (can be 1 or 3 colors depending on mode)
+                  if (status.current_colors && status.current_colors.length > 0) {
                     this.currentPattern.colors = [...status.current_colors];
                   }
                 }

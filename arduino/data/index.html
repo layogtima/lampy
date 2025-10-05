@@ -291,7 +291,7 @@
                 Pattern Colors
               </h3>
               <div class="flex items-start justify-between gap-2 relative">
-                <div class="flex gap-2 flex-1 choosen-colors">
+                <div class="flex gap-2 flex-1 chosen-colors">
                   <div v-for="(color, index) in currentPattern.colors" :key="index" class="relative">
                     <button
                       @click="openColorPicker(index, $event)"
@@ -308,42 +308,6 @@
                 >
                   <i class="fas fa-undo"></i>
                 </button>
-              </div>
-
-              <!-- Color Picker Popover -->
-              <div v-if="colorPickerOpen" class="fixed inset-0 z-50" @click="closeColorPicker">
-                <div
-                  @click.stop
-                  class="absolute bg-white dark:bg-gray-800 border-2 border-lampy-accent dark:border-lampy-accent rounded-xl shadow-2xl p-4"
-                  :style="colorPickerPosition"
-                >
-                  <div class="flex items-center justify-between mb-3">
-                    <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                      Choose Color {{ selectedColorSlot + 1 }}
-                    </h4>
-                    <button
-                      @click="closeColorPicker"
-                      class="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white transition-all"
-                    >
-                      <i class="fas fa-times text-xs"></i>
-                    </button>
-                  </div>
-                  <div class="grid grid-cols-6 gap-2 w-64">
-                    <button
-                      v-for="(swatch, index) in curatedColors"
-                      :key="index"
-                      @click="applyColorToSlot(swatch.value)"
-                      class="color-swatch aspect-square rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-800 dark:hover:border-white"
-                      :class="[
-                        currentPattern.colors[selectedColorSlot] === swatch.value
-                          ? 'scale-105 outline outline-2 outline-gray-800 dark:outline-white border-white dark:border-gray-800 shadow-none dark:shadow-none'
-                          : 'shadow-md shadow-gray-400 dark:shadow-gray-700 hover:shadow-lg hover:shadow-gray-500 dark:hover:shadow-gray-600 border-gray-500/50 dark:border-white/50'
-                      ]"
-                      :style="{ backgroundColor: swatch.value }"
-                      :title="swatch.name"
-                    ></button>
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -413,6 +377,7 @@
       <div class="lg:hidden h-screen flex flex-col relative">
         <!-- LED Showcase - 70% of screen -->
         <div
+          @click="drawerCollapsed = true"
           class="flex-1 bg-white dark:bg-gray-800 flex items-center justify-center relative"
           style="perspective: 800px"
         >
@@ -481,7 +446,7 @@
           <div @click="drawerCollapsed = !drawerCollapsed" class="p-4 cursor-pointer">
             <div class="drawer-handle"></div>
             <div class="text-center text-xs font-bold text-gray-500 uppercase tracking-wide">
-              {{ drawerCollapsed ? 'Swipe Up for Controls' : 'Swipe Down to Close' }}
+              {{ drawerCollapsed ? 'Tap for Controls' : 'Tap to Close' }}
             </div>
           </div>
 
@@ -531,6 +496,42 @@
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Color Picker Popover -->
+      <div v-if="colorPickerOpen" class="fixed inset-0 z-50" @click="closeColorPicker">
+        <div
+          @click.stop
+          class="absolute bg-white dark:bg-gray-800 border-2 border-lampy-accent dark:border-lampy-accent rounded-xl shadow-2xl p-4"
+          :style="colorPickerPosition"
+        >
+          <div class="flex items-center justify-between mb-3">
+            <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
+              Choose Color {{ selectedColorSlot + 1 }}
+            </h4>
+            <button
+              @click="closeColorPicker"
+              class="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white transition-all"
+            >
+              <i class="fas fa-times text-xs"></i>
+            </button>
+          </div>
+          <div class="grid grid-cols-6 gap-2 w-64">
+            <button
+              v-for="(swatch, index) in curatedColors"
+              :key="index"
+              @click="applyColorToSlot(swatch.value)"
+              class="color-swatch aspect-square rounded-lg border-2 cursor-pointer transition-all duration-200 hover:scale-110 hover:border-gray-800 dark:hover:border-white"
+              :class="[
+                currentPattern.colors[selectedColorSlot] === swatch.value
+                  ? 'scale-105 outline outline-2 outline-gray-800 dark:outline-white border-white dark:border-gray-800 shadow-none dark:shadow-none'
+                  : 'shadow-md shadow-gray-400 dark:shadow-gray-700 hover:shadow-lg hover:shadow-gray-500 dark:hover:shadow-gray-600 border-gray-500/50 dark:border-white/50'
+              ]"
+              :style="{ backgroundColor: swatch.value }"
+              :title="swatch.name"
+            ></button>
           </div>
         </div>
       </div>
@@ -860,8 +861,11 @@
 
             // Calculate popover position
             const button = event.target.closest("button");
-            const chosenColorsContainer = button.closest(".choosen-colors");
-            const rect = chosenColorsContainer.getBoundingClientRect();
+            const chosenColorsContainer = button.closest(".chosen-colors");
+
+            // Use the container if it exists (desktop), otherwise use the button's parent (mobile)
+            const containerElement = chosenColorsContainer || button.parentElement;
+            const rect = containerElement.getBoundingClientRect();
             const popoverWidth = 320;
             const popoverHeight = 200;
 

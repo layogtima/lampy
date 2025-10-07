@@ -9,7 +9,7 @@
 // - Shooting stars
 // - Matrix-style rain
 // - Field of Asters
-// - Orchard of Mandarin Trees192, 168, 4, 1
+// - Orchard of Mandarin Trees
 
 // ===== BUILT-IN ESP32 LIBRARIES =====
 // These come automatically with the ESP32 board package - no installation needed!

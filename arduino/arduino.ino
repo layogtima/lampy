@@ -768,7 +768,7 @@ void matrix(int dropSpeed, int fadeSpeed, int newDropChance)
 // ===== WIFI SETUP =====
 void setupWiFi()
 {
-  Serial.println("Setting up WiFi with WiFiManager...");
+  Serial.println("I'm now connecting to your WiFi network.");
 
   // Set WiFi mode to station
   WiFi.mode(WIFI_STA);
@@ -778,19 +778,19 @@ void setupWiFi()
 
   // Customize WiFiManager settings
   wifiManager.setConfigPortalTimeout(180); // 3 minute timeout for config portal
-  wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
+  wifiManager.setAPStaticIPConfig(IPAddress(192, 19, 2, 1), IPAddress(192, 19, 2, 1), IPAddress(255, 255, 255, 0));
 
   // Enable captive portal (this redirects all DNS requests to the AP IP)
   wifiManager.setCaptivePortalEnable(true);
 
   // Custom portal page title and device name
-  wifiManager.setTitle("Lampy WiFi Setup");
+  wifiManager.setTitle("Hello, I'm Lampy!");
   wifiManager.setHostname("lampy");
 
   // Try to connect with saved credentials, or start config portal
   if (!wifiManager.autoConnect("Hello, I am Lampy!"))
   {
-    Serial.println("Failed to connect to WiFi and hit timeout");
+    Serial.println("I could not connect to your WiFi; let me restart really quick!");
     // Reset and try again, or put device to sleep
     ESP.restart();
     delay(1000);
@@ -798,7 +798,7 @@ void setupWiFi()
 
   // If we get here, WiFi is connected
   Serial.println("");
-  Serial.println("WiFi connected successfully!");
+  Serial.println("I have WiFi!");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
   Serial.print("Connected to: ");
@@ -816,7 +816,7 @@ void setupWiFi()
     Serial.println("✓ HTTP service announced on mDNS");
 
     // Add additional service info
-    MDNS.addServiceTxt("http", "tcp", "device", "Lampy LED Controller");
+    MDNS.addServiceTxt("http", "tcp", "device", "Hello, I'm Lampy!");
     MDNS.addServiceTxt("http", "tcp", "version", "2.0");
     Serial.println("✓ mDNS service details added");
   }

@@ -11,14 +11,18 @@
 // - Field of Asters
 // - Orchard of Mandarin Trees
 
-// First, we need to include some special tools (like getting art supplies ready):
-#include <Adafruit_NeoPixel.h> // This helps us control our LED light strip
-#include <Preferences.h>       // This helps Lampy remember its settings, like a diary!
-#include <WiFi.h>              // This helps us connect to WiFi
-#include <WebServer.h>         // This helps us create a web server
-#include <SPIFFS.h>            // This helps us store files on the ESP32
-#include <WiFiManager.h>       // This helps us configure WiFi dynamically
-#include <ESPmDNS.h>           // This helps us use lampy.local instead of IP address
+// ===== BUILT-IN ESP32 LIBRARIES =====
+// These come automatically with the ESP32 board package - no installation needed!
+#include <WiFi.h>        // ESP32 WiFi connectivity
+#include <WebServer.h>   // ESP32 HTTP web server
+#include <SPIFFS.h>      // ESP32 flash filesystem (stores HTML/JS files)
+#include <Preferences.h> // ESP32 NVS storage (Lampy's memory for settings)
+#include <ESPmDNS.h>     // ESP32 mDNS responder (enables lampy.local access)
+
+// ===== THIRD-PARTY LIBRARIES =====
+// Install these via Arduino IDE: Tools > Manage Libraries
+#include <Adafruit_NeoPixel.h> // LED strip control - Install "Adafruit NeoPixel"
+#include <WiFiManager.h>       // WiFi config portal - Install "WiFiManager" by tzapu
 
 // ===== WIFI CONFIGURATION =====
 // WiFi credentials are now configured dynamically via WiFiManager
@@ -31,6 +35,7 @@ WiFiManager wifiManager; // Create WiFiManager instance
 // Let's list all the cool things Lampy can do (like a table of contents):
 void switchMode();                                                                                                                // Changes between different light patterns
 void setupWiFi();                                                                                                                 // Connects to WiFi network
+void startMDNS();                                                                                                                 // Starts mDNS service
 void setupWebServer();                                                                                                            // Sets up web server and routes
 void setupSPIFFS();                                                                                                               // Sets up file system
 void handleRoot();                                                                                                                // Handles main web page (now serves from SPIFFS)
@@ -38,6 +43,7 @@ void handleSwitchMode();                                                        
 void handleGetStatus();                                                                                                           // Returns current status as JSON
 void handleUpdate();                                                                                                              // Handles real-time parameter updates
 void handleDiscover();                                                                                                            // Returns device capabilities
+void handleWiFiUpdate();                                                                                                          // Handles WiFi credential update
 void handleWiFiReset();                                                                                                           // Handles WiFi credential reset
 void handleFileRequest();                                                                                                         // Serves static files from SPIFFS
 void handleUploadPage();                                                                                                          // Shows file upload interface
@@ -46,6 +52,8 @@ String getContentType(String filename);                                         
 uint32_t hexStringToColor(String hexStr);                                                                                         // Converts hex string to color
 void updatePatternColors(String colorsJson);                                                                                      // Updates pattern colors from JSON
 void setDefaultColorsForMode(int mode);                                                                                           // Sets default colors for current mode
+void saveColorsForMode(int mode);                                                                                                 // Saves colors for a specific mode to preferences
+void loadColorsForMode(int mode);                                                                                                 // Loads colors for a specific mode from preferences
 void rainbow(int cycleSpeed);                                                                                                     // Makes a rainbow pattern
 void fire(int Cooling, int Sparking, int SpeedDelay);                                                                             // Makes fire effects
 void firefly(int sparkSpeed, int pulseSpeed, int newFlyChance, int fadeAmount);                                                   // Makes firefly lights
@@ -66,11 +74,15 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800); // Our LED st
 
 // ===== GLOBAL VARIABLES (Our Toolbox) =====
 // Think of these like settings we can change anytime:
-unsigned long previousMillis = 0; // This is like a stopwatch to help control timing
-const long interval = 10;         // How often we update our patterns (in milliseconds)
-int state = 0;                    // Which light pattern we're showing (like choosing a TV channel)
-int brightness = 175;             // How bright our lights are (0 = off, 255 = super bright!; caution: super bright colors will seem washed out compared to the less brighter ones)
-int currentBrightness = 50;       // Keeps track of current brightness while fading
+unsigned long previousMillis = 0;           // This is like a stopwatch to help control timing
+const long interval = 10;                   // How often we update our patterns (in milliseconds)
+int state = 0;                              // Which light pattern we're showing (like choosing a TV channel)
+int brightness = 175;                       // How bright our lights are (0 = off, 255 = super bright!; caution: super bright colors will seem washed out compared to the less brighter ones)
+int currentBrightness = 50;                 // Keeps track of current brightness while fading
+unsigned long lastPowerTimestampSave = 0;   // Last time we saved the power-on timestamp
+const unsigned long TIMESTAMP_SAVE_INTERVAL = 1000; // Save timestamp every second
+bool wifiConnected = false;                 // Track WiFi connection status
+bool mdnsStarted = false;                   // Track if mDNS has been started
 
 // ===== CONFIGURABLE PATTERN COLORS =====
 // These can be changed in real-time via the API
@@ -81,7 +93,11 @@ uint32_t patternColors[3] = {
 };
 
 // Pattern parameters
-int cycleSpeed = 1; // How fast patterns cycle (1-10)
+int cycleSpeed = 5; // How fast patterns cycle (1-10), default to medium speed
+
+// Power cycle detection
+unsigned long powerOnTime = 0;
+const unsigned long POWER_CYCLE_WINDOW = 3000; // 3 seconds to detect power cycle
 
 // ===== GETTING STARTED =====
 void setup()
@@ -90,27 +106,85 @@ void setup()
   Serial.begin(115200); // Starts communication with our computer
 
   preferences.begin("lampy", false);                  // Opens Lampy's diary to remember settings
-  state = preferences.getInt("state", 0);             // Checks what pattern we used last time
+
+  // Power cycle mode switching
+  unsigned long lastPowerOff = preferences.getULong("lastPowerOff", 0);
+  powerOnTime = millis();
+
+  // If powered on within 3 seconds of last power off, cycle to next mode
+  if (lastPowerOff > 0 && (powerOnTime < POWER_CYCLE_WINDOW || lastPowerOff > (UINT32_MAX - POWER_CYCLE_WINDOW))) {
+    Serial.println("Power cycle detected! Switching to next mode...");
+    state = preferences.getInt("state", 0);
+    state = (state + 1) % 8; // Cycle through modes 0-7
+    preferences.putInt("state", state);
+    Serial.print("New mode: ");
+    Serial.println(state);
+  } else {
+    state = preferences.getInt("state", 0); // Use last saved mode
+  }
+
   brightness = preferences.getInt("brightness", 175); // Load saved brightness or use default
+  cycleSpeed = preferences.getInt("cycleSpeed", 5);   // Load saved speed or use default
 
   strip.begin();                   // Wakes up our LED strip
   strip.setBrightness(brightness); // Apply saved brightness to strip
   strip.show();                    // Makes sure all lights start turned off
 
-  setDefaultColorsForMode(state); // Initialize colors for current mode
+  loadColorsForMode(state); // Load saved colors for current mode (or use defaults)
 
   setupSPIFFS();    // Set up file system for web files
   setupWiFi();      // Connect to WiFi network
   setupWebServer(); // Start the web server
 
   Serial.println("Ready"); // Tells us Lampy is ready to party!
+  Serial.print("Running mode: ");
+  Serial.println(state);
+
+  // Clear the last power off timestamp (will be set again when we detect power loss)
+  preferences.putULong("lastPowerOff", 0);
 }
 
 // ===== MAIN PROGRAM LOOP =====
 void loop()
 {
-  // Handle web server requests
-  server.handleClient();
+  // Process WiFi manager (non-blocking)
+  wifiManager.process();
+
+  // Check if WiFi just connected and start mDNS if needed
+  if (WiFi.status() == WL_CONNECTED && !wifiConnected)
+  {
+    wifiConnected = true;
+    Serial.println("\nWiFi connected!");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+    Serial.print("Connected to: ");
+    Serial.println(WiFi.SSID());
+
+    if (!mdnsStarted)
+    {
+      startMDNS();
+      mdnsStarted = true;
+    }
+  }
+  else if (WiFi.status() != WL_CONNECTED && wifiConnected)
+  {
+    wifiConnected = false;
+    Serial.println("WiFi disconnected");
+  }
+
+  // Handle web server requests (only if WiFi is connected)
+  if (wifiConnected)
+  {
+    server.handleClient();
+  }
+
+  // Periodically save timestamp for power cycle detection
+  unsigned long currentMillis = millis();
+  if (currentMillis - lastPowerTimestampSave >= TIMESTAMP_SAVE_INTERVAL)
+  {
+    preferences.putULong("lastPowerOff", currentMillis);
+    lastPowerTimestampSave = currentMillis;
+  }
 
   // Note: ESP32-C3 mDNS doesn't need manual update() calls
 
@@ -155,7 +229,11 @@ void loop()
   { // SHOOTING STARS MODE
     if ((unsigned long)(millis() - previousMillis) >= interval)
     {
-      spirula(0xff, 0, 0xff, 30, 48, true, 60);
+      // Extract RGB from first pattern color
+      uint8_t r = (patternColors[0] >> 16) & 0xFF;
+      uint8_t g = (patternColors[0] >> 8) & 0xFF;
+      uint8_t b = patternColors[0] & 0xFF;
+      spirula(r, g, b, 30, 48, true, 60);
       previousMillis = millis();
     }
   }
@@ -337,10 +415,10 @@ void kelp(int cycleSpeed)
 {
   static int cycles = 0; // Keeps track of where we are in the wave pattern
 
-  // Kelp colors! These make it look waves of radioactive kelp swaying in the breeze:
-  uint32_t color1 = strip.Color(70, 255, 0); // Lime (like a fresh lemon)
-  uint32_t color2 = strip.Color(0, 255, 0);  // Bright Green (like the forest during daylight)
-  uint32_t color3 = strip.Color(0, 255, 60); // Mint Green (like a fresh leaf)
+  // Use configurable colors
+  uint32_t color1 = patternColors[0];
+  uint32_t color2 = patternColors[1];
+  uint32_t color3 = patternColors[2];
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++)
@@ -359,10 +437,10 @@ void mandarin(int cycleSpeed)
 {
   static int cycles = 0; // Keeps track of where we are in the wave pattern
 
-  // Aster colors! Imagine an orchard of mandarins:
-  uint32_t color1 = strip.Color(209, 53, 40); // Deep Orange
-  uint32_t color2 = strip.Color(6, 115, 51);  // Foliage
-  uint32_t color3 = strip.Color(3, 78, 35);   // Arbor Green
+  // Use configurable colors
+  uint32_t color1 = patternColors[0];
+  uint32_t color2 = patternColors[1];
+  uint32_t color3 = patternColors[2];
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++)
@@ -389,10 +467,10 @@ void aster(int cycleSpeed)
 {
   static int cycles = 0; // Keeps track of where we are in the wave pattern
 
-  // Aster colors! Imagine a field of asters:
-  uint32_t color1 = strip.Color(236, 182, 2); // Deep Yellow (center of an aster)
-  uint32_t color2 = strip.Color(85, 24, 93);  // Purple (petals of asters)
-  uint32_t color3 = strip.Color(41, 8, 73);   // Violet (hues of asters)
+  // Use configurable colors
+  uint32_t color1 = patternColors[0];
+  uint32_t color2 = patternColors[1];
+  uint32_t color3 = patternColors[2];
 
   // Color each LED in the strip
   for (int i = 0; i < strip.numPixels(); i++)
@@ -459,28 +537,41 @@ void fire(int Cooling, int Sparking, int SpeedDelay)
 }
 
 // ===== FIRE COLOR HELPER =====
-// This turns temperature numbers into pretty fire colors
+// This turns temperature numbers into pretty fire colors using user-defined colors
 void setPixelHeatColor(int Pixel, byte temperature)
 {
   // Scale 'heat' down from 0-255 to 0-191
   byte t192 = round((temperature / 255.0) * 191);
 
-  byte heatramp = t192 & 0x3F; // 0..63
-  heatramp <<= 2;              // scale up to 0..252
+  uint32_t color;
 
-  // Choose colors based on how hot the pixel is
   if (t192 > 0x80)
-  { // Super hot! White-ish yellow
-    setPixel(Pixel, 255, 255, heatramp);
+  {
+    // Super hot! Blend color2 → color3 (e.g., orange → yellow)
+    byte blend = ((t192 - 0x80) * 2); // 0-255 blend factor
+    color = interpolateColor(patternColors[1], patternColors[2], blend);
   }
   else if (t192 > 0x40)
-  { // Medium hot! Orange
-    setPixel(Pixel, 255, heatramp, 0);
+  {
+    // Medium hot! Blend color1 → color2 (e.g., red → orange)
+    byte blend = ((t192 - 0x40) * 4); // 0-255 blend factor
+    color = interpolateColor(patternColors[0], patternColors[1], blend);
   }
   else
-  { // Not so hot! Red
-    setPixel(Pixel, heatramp, 0, 0);
+  {
+    // Cool! Just use color1 (e.g., red) scaled by heat
+    byte scale = t192 * 4; // 0-255 scale factor
+    uint8_t r = ((patternColors[0] >> 16) & 0xFF) * scale / 255;
+    uint8_t g = ((patternColors[0] >> 8) & 0xFF) * scale / 255;
+    uint8_t b = (patternColors[0] & 0xFF) * scale / 255;
+    color = strip.Color(r, g, b);
   }
+
+  // Extract RGB and set pixel
+  uint8_t r = (color >> 16) & 0xFF;
+  uint8_t g = (color >> 8) & 0xFF;
+  uint8_t b = color & 0xFF;
+  setPixel(Pixel, r, g, b);
 }
 
 // ===== PIXEL SETTING HELPER =====
@@ -605,11 +696,16 @@ void firefly(int sparkSpeed, int pulseSpeed, int newFlyChance, int fadeAmount)
           pulseCycle[i] += 0.1;
           float pulseValue = sin(pulseCycle[i]) * 0.2 + 0.8;
 
-          // Warm amber glow
+          // Extract RGB from first pattern color and scale by brightness
+          uint8_t baseR = (patternColors[0] >> 16) & 0xFF;
+          uint8_t baseG = (patternColors[0] >> 8) & 0xFF;
+          uint8_t baseB = patternColors[0] & 0xFF;
+
           byte brightness = fireflyBrightness[i] * pulseValue;
-          byte red = (brightness * 255) / 255;
-          byte green = (brightness * 180) / 255;
-          setPixel(i, red, green, 0);
+          byte red = (brightness * baseR) / 255;
+          byte green = (brightness * baseG) / 255;
+          byte blue = (brightness * baseB) / 255;
+          setPixel(i, red, green, blue);
 
           if (pulseCycle[i] > PI * 2)
           {
@@ -618,11 +714,16 @@ void firefly(int sparkSpeed, int pulseSpeed, int newFlyChance, int fadeAmount)
         }
         else
         {
-          // Fade out gently
+          // Fade out gently - extract RGB from first pattern color
+          uint8_t baseR = (patternColors[0] >> 16) & 0xFF;
+          uint8_t baseG = (patternColors[0] >> 8) & 0xFF;
+          uint8_t baseB = patternColors[0] & 0xFF;
+
           float fadeRatio = (float)fireflyBrightness[i] / 255.0;
-          byte red = (fireflyBrightness[i] * 255) / 255;
-          byte green = (fireflyBrightness[i] * 180) / 255;
-          setPixel(i, red * fadeRatio, green * fadeRatio, 0);
+          byte red = (fireflyBrightness[i] * baseR) / 255;
+          byte green = (fireflyBrightness[i] * baseG) / 255;
+          byte blue = (fireflyBrightness[i] * baseB) / 255;
+          setPixel(i, red * fadeRatio, green * fadeRatio, blue * fadeRatio);
 
           if (fireflyBrightness[i] > 40)
           {
@@ -732,10 +833,18 @@ void matrix(int dropSpeed, int fadeSpeed, int newDropChance)
   }
 }
 
+// Callback to keep LEDs running during WiFi config
+void configModeCallback(WiFiManager *myWiFiManager)
+{
+  Serial.println("Entered config mode - keeping LEDs alive!");
+  Serial.println(WiFi.softAPIP());
+  Serial.println(myWiFiManager->getConfigPortalSSID());
+}
+
 // ===== WIFI SETUP =====
 void setupWiFi()
 {
-  Serial.println("Setting up WiFi with WiFiManager...");
+  Serial.println("I'm now connecting to your WiFi network.");
 
   // Set WiFi mode to station
   WiFi.mode(WIFI_STA);
@@ -747,28 +856,43 @@ void setupWiFi()
   wifiManager.setConfigPortalTimeout(180); // 3 minute timeout for config portal
   wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
 
+  // Enable captive portal (this redirects all DNS requests to the AP IP)
+  wifiManager.setCaptivePortalEnable(true);
+
   // Custom portal page title and device name
-  wifiManager.setTitle("Lampy WiFi Setup");
+  wifiManager.setTitle("Hello, I'm Lampy!");
   wifiManager.setHostname("lampy");
 
-  // Try to connect with saved credentials, or start config portal
-  if (!wifiManager.autoConnect("Lampy-Setup"))
+  // Set callback for AP mode (when hosting "Hello, I am Lampy!" network)
+  wifiManager.setAPCallback(configModeCallback);
+
+  // Set config portal blocking to false - this allows LEDs to keep running
+  wifiManager.setConfigPortalBlocking(false);
+
+  // Start non-blocking WiFi connection
+  if (wifiManager.autoConnect("Hello, I am Lampy!"))
   {
-    Serial.println("Failed to connect to WiFi and hit timeout");
-    // Reset and try again, or put device to sleep
-    ESP.restart();
-    delay(1000);
+    // If we get here immediately, WiFi is already connected
+    Serial.println("");
+    Serial.println("I have WiFi!");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+    Serial.print("Connected to: ");
+    Serial.println(WiFi.SSID());
+
+    // Start mDNS service
+    startMDNS();
   }
+  else
+  {
+    // WiFi manager is running in non-blocking mode
+    Serial.println("WiFi setup running in background - LEDs will keep animating!");
+  }
+}
 
-  // If we get here, WiFi is connected
-  Serial.println("");
-  Serial.println("WiFi connected successfully!");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  Serial.print("Connected to: ");
-  Serial.println(WiFi.SSID());
-
-  // Start mDNS service so users can access via lampy.local
+// Helper function to start mDNS
+void startMDNS()
+{
   Serial.println("Starting mDNS service...");
   if (MDNS.begin("lampy"))
   {
@@ -780,7 +904,7 @@ void setupWiFi()
     Serial.println("✓ HTTP service announced on mDNS");
 
     // Add additional service info
-    MDNS.addServiceTxt("http", "tcp", "device", "Lampy LED Controller");
+    MDNS.addServiceTxt("http", "tcp", "device", "Hello, I'm Lampy!");
     MDNS.addServiceTxt("http", "tcp", "version", "2.0");
     Serial.println("✓ mDNS service details added");
   }
@@ -809,6 +933,7 @@ void setupWebServer()
     server.send(200, "application/json", json); });
   server.on("/api/update", HTTP_POST, handleUpdate);
   server.on("/api/discover", HTTP_GET, handleDiscover);
+  server.on("/api/wifi", HTTP_POST, handleWiFiUpdate);
   server.on("/api/wifi-reset", HTTP_POST, handleWiFiReset);
 
   // File upload endpoints
@@ -887,13 +1012,19 @@ void handleGetStatus()
   String json = "{";
   json += "\"current_mode\":" + String(state) + ",";
   json += "\"wifi_connected\":" + String(WiFi.status() == WL_CONNECTED ? "true" : "false") + ",";
+  json += "\"wifi_ssid\":\"" + WiFi.SSID() + "\",";
   json += "\"ip_address\":\"" + WiFi.localIP().toString() + "\",";
   json += "\"brightness\":" + String(brightness) + ",";
-  json += "\"uptime\":" + String(millis()) + ",";
 
-  // Add current colors (from active pattern colors)
+  // Add current colors (only return colors that this mode actually uses)
+  int numColors = 3;
+  if (state == 1 || state == 3)
+  {
+    numColors = 1; // Shooting Stars and Fireflies only use 1 color
+  }
+
   json += "\"current_colors\":[";
-  for (int i = 0; i < 3; i++)
+  for (int i = 0; i < numColors; i++)
   {
     if (i > 0)
       json += ",";
@@ -946,6 +1077,7 @@ void handleSwitchMode()
       {
         state = newMode;
         preferences.putInt("state", state);
+        loadColorsForMode(state); // Load colors for the new mode
 
         server.send(200, "application/json", "{\"success\":true,\"mode\":" + String(state) + "}");
         return;
@@ -996,7 +1128,7 @@ void handleUpdate()
       { // Only change if it's actually different
         state = newMode;
         preferences.putInt("state", state);
-        setDefaultColorsForMode(state); // Set default colors for new mode
+        loadColorsForMode(state); // Load saved colors for new mode
       }
       if (updated)
         response += ",";
@@ -1059,6 +1191,7 @@ void handleUpdate()
     {
       String colorsArray = body.substring(arrayStart, arrayEnd + 1);
       updatePatternColors(colorsArray);
+      saveColorsForMode(state); // Save the updated colors for current mode
 
       if (updated)
         response += ",";
@@ -1087,6 +1220,7 @@ void handleUpdate()
       if (newSpeed >= 1 && newSpeed <= 10)
       {
         cycleSpeed = newSpeed;
+        preferences.putInt("cycleSpeed", cycleSpeed); // Save speed to preferences
       }
     }
 
@@ -1417,6 +1551,85 @@ void setDefaultColorsForMode(int mode)
   }
 }
 
+// ===== WIFI UPDATE HANDLER =====
+void handleWiFiUpdate()
+{
+  if (!server.hasArg("plain"))
+  {
+    server.send(400, "application/json", "{\"success\":false,\"error\":\"No JSON body provided\"}");
+    return;
+  }
+
+  String body = server.arg("plain");
+  Serial.println("WiFi update requested via API");
+  Serial.println("Body: " + body);
+
+  // Parse SSID
+  String ssid = "";
+  int ssidIndex = body.indexOf("\"ssid\":");
+  if (ssidIndex >= 0)
+  {
+    int valueStart = body.indexOf("\"", ssidIndex + 7) + 1;
+    int valueEnd = body.indexOf("\"", valueStart);
+    ssid = body.substring(valueStart, valueEnd);
+  }
+
+  // Parse password
+  String password = "";
+  int passwordIndex = body.indexOf("\"password\":");
+  if (passwordIndex >= 0)
+  {
+    int valueStart = body.indexOf("\"", passwordIndex + 11) + 1;
+    int valueEnd = body.indexOf("\"", valueStart);
+    password = body.substring(valueStart, valueEnd);
+  }
+
+  if (ssid.length() == 0 || password.length() == 0)
+  {
+    server.send(400, "application/json", "{\"success\":false,\"error\":\"SSID and password are required\"}");
+    return;
+  }
+
+  Serial.println("Updating WiFi to SSID: " + ssid);
+
+  // Clear existing WiFi credentials
+  wifiManager.resetSettings();
+
+  // Send success response
+  server.send(200, "application/json", "{\"success\":true,\"message\":\"WiFi credentials updated. Device will restart and connect to new network.\"}");
+
+  // Small delay to ensure response is sent
+  delay(1000);
+
+  // Disconnect from current WiFi
+  WiFi.disconnect();
+  delay(100);
+
+  // Connect to new WiFi
+  WiFi.begin(ssid.c_str(), password.c_str());
+
+  // Wait up to 10 seconds for connection
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20)
+  {
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    Serial.println("\nConnected to new WiFi!");
+    Serial.print("IP: ");
+    Serial.println(WiFi.localIP());
+  }
+  else
+  {
+    Serial.println("\nFailed to connect to new WiFi. Restarting...");
+    ESP.restart();
+  }
+}
+
 // ===== WIFI RESET HANDLER =====
 void handleWiFiReset()
 {
@@ -1433,4 +1646,56 @@ void handleWiFiReset()
 
   // Restart the device to enter setup mode
   ESP.restart();
+}
+
+// ===== SAVE COLORS FOR MODE =====
+void saveColorsForMode(int mode)
+{
+  // Save colors for the specific mode using dedicated storage
+  // Mode 1 (Shooting Stars) and Mode 3 (Fireflies) only save 1 color
+  // All other modes save 3 colors
+  String keyPrefix = "m" + String(mode) + "_c";
+
+  int numColors = 3;
+  if (mode == 1 || mode == 3)
+  {
+    numColors = 1; // Shooting Stars and Fireflies only use 1 color
+  }
+
+  for (int i = 0; i < numColors; i++)
+  {
+    String key = keyPrefix + String(i);
+    preferences.putUInt(key.c_str(), patternColors[i]);
+    Serial.printf("Saved color %d for mode %d: #%06X\n", i, mode, patternColors[i]);
+  }
+
+  Serial.printf("Saved %d color(s) for mode %d\n", numColors, mode);
+}
+
+// ===== LOAD COLORS FOR MODE =====
+void loadColorsForMode(int mode)
+{
+  // First set defaults for ALL 3 colors (ensures clean state, no color bleeding)
+  setDefaultColorsForMode(mode);
+
+  // Then load saved colors for this specific mode
+  String keyPrefix = "m" + String(mode) + "_c";
+
+  int numColors = 3;
+  if (mode == 1 || mode == 3)
+  {
+    numColors = 1; // Shooting Stars and Fireflies only use 1 color
+  }
+
+  for (int i = 0; i < numColors; i++)
+  {
+    String key = keyPrefix + String(i);
+    if (preferences.isKey(key.c_str()))
+    {
+      patternColors[i] = preferences.getUInt(key.c_str(), 0);
+      Serial.printf("Loaded custom color %d for mode %d: #%06X\n", i, mode, patternColors[i]);
+    }
+  }
+
+  Serial.printf("Loaded %d color(s) for mode %d\n", numColors, mode);
 }

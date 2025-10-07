@@ -42,6 +42,7 @@ void handleSwitchMode();                                                        
 void handleGetStatus();                                                                                                           // Returns current status as JSON
 void handleUpdate();                                                                                                              // Handles real-time parameter updates
 void handleDiscover();                                                                                                            // Returns device capabilities
+void handleWiFiUpdate();                                                                                                          // Handles WiFi credential update
 void handleWiFiReset();                                                                                                           // Handles WiFi credential reset
 void handleFileRequest();                                                                                                         // Serves static files from SPIFFS
 void handleUploadPage();                                                                                                          // Shows file upload interface
@@ -845,6 +846,7 @@ void setupWebServer()
     server.send(200, "application/json", json); });
   server.on("/api/update", HTTP_POST, handleUpdate);
   server.on("/api/discover", HTTP_GET, handleDiscover);
+  server.on("/api/wifi", HTTP_POST, handleWiFiUpdate);
   server.on("/api/wifi-reset", HTTP_POST, handleWiFiReset);
 
   // File upload endpoints
@@ -923,6 +925,7 @@ void handleGetStatus()
   String json = "{";
   json += "\"current_mode\":" + String(state) + ",";
   json += "\"wifi_connected\":" + String(WiFi.status() == WL_CONNECTED ? "true" : "false") + ",";
+  json += "\"wifi_ssid\":\"" + WiFi.SSID() + "\",";
   json += "\"ip_address\":\"" + WiFi.localIP().toString() + "\",";
   json += "\"brightness\":" + String(brightness) + ",";
 
@@ -1457,6 +1460,85 @@ void setDefaultColorsForMode(int mode)
     patternColors[0] = hexStringToColor("#ffffff"); // White
     patternColors[1] = hexStringToColor("#ffffff"); // White
     patternColors[2] = hexStringToColor("#ffffff"); // White
+  }
+}
+
+// ===== WIFI UPDATE HANDLER =====
+void handleWiFiUpdate()
+{
+  if (!server.hasArg("plain"))
+  {
+    server.send(400, "application/json", "{\"success\":false,\"error\":\"No JSON body provided\"}");
+    return;
+  }
+
+  String body = server.arg("plain");
+  Serial.println("WiFi update requested via API");
+  Serial.println("Body: " + body);
+
+  // Parse SSID
+  String ssid = "";
+  int ssidIndex = body.indexOf("\"ssid\":");
+  if (ssidIndex >= 0)
+  {
+    int valueStart = body.indexOf("\"", ssidIndex + 7) + 1;
+    int valueEnd = body.indexOf("\"", valueStart);
+    ssid = body.substring(valueStart, valueEnd);
+  }
+
+  // Parse password
+  String password = "";
+  int passwordIndex = body.indexOf("\"password\":");
+  if (passwordIndex >= 0)
+  {
+    int valueStart = body.indexOf("\"", passwordIndex + 11) + 1;
+    int valueEnd = body.indexOf("\"", valueStart);
+    password = body.substring(valueStart, valueEnd);
+  }
+
+  if (ssid.length() == 0 || password.length() == 0)
+  {
+    server.send(400, "application/json", "{\"success\":false,\"error\":\"SSID and password are required\"}");
+    return;
+  }
+
+  Serial.println("Updating WiFi to SSID: " + ssid);
+
+  // Clear existing WiFi credentials
+  wifiManager.resetSettings();
+
+  // Send success response
+  server.send(200, "application/json", "{\"success\":true,\"message\":\"WiFi credentials updated. Device will restart and connect to new network.\"}");
+
+  // Small delay to ensure response is sent
+  delay(1000);
+
+  // Disconnect from current WiFi
+  WiFi.disconnect();
+  delay(100);
+
+  // Connect to new WiFi
+  WiFi.begin(ssid.c_str(), password.c_str());
+
+  // Wait up to 10 seconds for connection
+  int attempts = 0;
+  while (WiFi.status() != WL_CONNECTED && attempts < 20)
+  {
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+
+  if (WiFi.status() == WL_CONNECTED)
+  {
+    Serial.println("\nConnected to new WiFi!");
+    Serial.print("IP: ");
+    Serial.println(WiFi.localIP());
+  }
+  else
+  {
+    Serial.println("\nFailed to connect to new WiFi. Restarting...");
+    ESP.restart();
   }
 }
 

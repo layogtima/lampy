@@ -11,14 +11,18 @@
 // - Field of Asters
 // - Orchard of Mandarin Trees
 
-// First, we need to include some special tools (like getting art supplies ready):
-#include <Adafruit_NeoPixel.h> // This helps us control our LED light strip
-#include <Preferences.h>       // This helps Lampy remember its settings, like a diary!
-#include <WiFi.h>              // This helps us connect to WiFi
-#include <WebServer.h>         // This helps us create a web server
-#include <SPIFFS.h>            // This helps us store files on the ESP32
-#include <WiFiManager.h>       // This helps us configure WiFi dynamically
-#include <ESPmDNS.h>           // This helps us use lampy.local instead of IP address
+// ===== BUILT-IN ESP32 LIBRARIES =====
+// These come automatically with the ESP32 board package - no installation needed!
+#include <WiFi.h>              // ESP32 WiFi connectivity
+#include <WebServer.h>         // ESP32 HTTP web server
+#include <SPIFFS.h>            // ESP32 flash filesystem (stores HTML/JS files)
+#include <Preferences.h>       // ESP32 NVS storage (Lampy's memory for settings)
+#include <ESPmDNS.h>           // ESP32 mDNS responder (enables lampy.local access)
+
+// ===== THIRD-PARTY LIBRARIES =====
+// Install these via Arduino IDE: Tools > Manage Libraries
+#include <Adafruit_NeoPixel.h> // LED strip control - Install "Adafruit NeoPixel"
+#include <WiFiManager.h>       // WiFi config portal - Install "WiFiManager" by tzapu
 
 // ===== WIFI CONFIGURATION =====
 // WiFi credentials are now configured dynamically via WiFiManager
@@ -777,12 +781,15 @@ void setupWiFi()
   wifiManager.setConfigPortalTimeout(180); // 3 minute timeout for config portal
   wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
 
+  // Enable captive portal (this redirects all DNS requests to the AP IP)
+  wifiManager.setCaptivePortalEnable(true);
+
   // Custom portal page title and device name
   wifiManager.setTitle("Lampy WiFi Setup");
   wifiManager.setHostname("lampy");
 
   // Try to connect with saved credentials, or start config portal
-  if (!wifiManager.autoConnect("Lampy-Setup"))
+  if (!wifiManager.autoConnect("Hello, I am Lampy!"))
   {
     Serial.println("Failed to connect to WiFi and hit timeout");
     // Reset and try again, or put device to sleep

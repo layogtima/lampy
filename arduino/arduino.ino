@@ -9,7 +9,7 @@
 // - Shooting stars
 // - Matrix-style rain
 // - Field of Asters
-// - Orchard of Mandarin Trees
+// - Orchard of Mandarin Trees192, 168, 4, 1
 
 // ===== BUILT-IN ESP32 LIBRARIES =====
 // These come automatically with the ESP32 board package - no installation needed!
@@ -779,7 +779,7 @@ void setupWiFi()
 
   // Customize WiFiManager settings
   wifiManager.setConfigPortalTimeout(180); // 3 minute timeout for config portal
-  wifiManager.setAPStaticIPConfig(IPAddress(192, 19, 2, 1), IPAddress(192, 19, 2, 1), IPAddress(255, 255, 255, 0));
+  wifiManager.setAPStaticIPConfig(IPAddress(192, 168, 4, 1), IPAddress(192, 168, 4, 1), IPAddress(255, 255, 255, 0));
 
   // Enable captive portal (this redirects all DNS requests to the AP IP)
   wifiManager.setCaptivePortalEnable(true);

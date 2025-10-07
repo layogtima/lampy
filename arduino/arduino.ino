@@ -35,6 +35,7 @@ WiFiManager wifiManager; // Create WiFiManager instance
 // Let's list all the cool things Lampy can do (like a table of contents):
 void switchMode();                                                                                                                // Changes between different light patterns
 void setupWiFi();                                                                                                                 // Connects to WiFi network
+void startMDNS();                                                                                                                 // Starts mDNS service
 void setupWebServer();                                                                                                            // Sets up web server and routes
 void setupSPIFFS();                                                                                                               // Sets up file system
 void handleRoot();                                                                                                                // Handles main web page (now serves from SPIFFS)
@@ -73,11 +74,15 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800); // Our LED st
 
 // ===== GLOBAL VARIABLES (Our Toolbox) =====
 // Think of these like settings we can change anytime:
-unsigned long previousMillis = 0; // This is like a stopwatch to help control timing
-const long interval = 10;         // How often we update our patterns (in milliseconds)
-int state = 0;                    // Which light pattern we're showing (like choosing a TV channel)
-int brightness = 175;             // How bright our lights are (0 = off, 255 = super bright!; caution: super bright colors will seem washed out compared to the less brighter ones)
-int currentBrightness = 50;       // Keeps track of current brightness while fading
+unsigned long previousMillis = 0;           // This is like a stopwatch to help control timing
+const long interval = 10;                   // How often we update our patterns (in milliseconds)
+int state = 0;                              // Which light pattern we're showing (like choosing a TV channel)
+int brightness = 175;                       // How bright our lights are (0 = off, 255 = super bright!; caution: super bright colors will seem washed out compared to the less brighter ones)
+int currentBrightness = 50;                 // Keeps track of current brightness while fading
+unsigned long lastPowerTimestampSave = 0;   // Last time we saved the power-on timestamp
+const unsigned long TIMESTAMP_SAVE_INTERVAL = 1000; // Save timestamp every second
+bool wifiConnected = false;                 // Track WiFi connection status
+bool mdnsStarted = false;                   // Track if mDNS has been started
 
 // ===== CONFIGURABLE PATTERN COLORS =====
 // These can be changed in real-time via the API
@@ -88,7 +93,11 @@ uint32_t patternColors[3] = {
 };
 
 // Pattern parameters
-int cycleSpeed = 1; // How fast patterns cycle (1-10)
+int cycleSpeed = 5; // How fast patterns cycle (1-10), default to medium speed
+
+// Power cycle detection
+unsigned long powerOnTime = 0;
+const unsigned long POWER_CYCLE_WINDOW = 3000; // 3 seconds to detect power cycle
 
 // ===== GETTING STARTED =====
 void setup()
@@ -97,8 +106,25 @@ void setup()
   Serial.begin(115200); // Starts communication with our computer
 
   preferences.begin("lampy", false);                  // Opens Lampy's diary to remember settings
-  state = preferences.getInt("state", 0);             // Checks what pattern we used last time
+
+  // Power cycle mode switching
+  unsigned long lastPowerOff = preferences.getULong("lastPowerOff", 0);
+  powerOnTime = millis();
+
+  // If powered on within 3 seconds of last power off, cycle to next mode
+  if (lastPowerOff > 0 && (powerOnTime < POWER_CYCLE_WINDOW || lastPowerOff > (UINT32_MAX - POWER_CYCLE_WINDOW))) {
+    Serial.println("Power cycle detected! Switching to next mode...");
+    state = preferences.getInt("state", 0);
+    state = (state + 1) % 8; // Cycle through modes 0-7
+    preferences.putInt("state", state);
+    Serial.print("New mode: ");
+    Serial.println(state);
+  } else {
+    state = preferences.getInt("state", 0); // Use last saved mode
+  }
+
   brightness = preferences.getInt("brightness", 175); // Load saved brightness or use default
+  cycleSpeed = preferences.getInt("cycleSpeed", 5);   // Load saved speed or use default
 
   strip.begin();                   // Wakes up our LED strip
   strip.setBrightness(brightness); // Apply saved brightness to strip
@@ -111,13 +137,54 @@ void setup()
   setupWebServer(); // Start the web server
 
   Serial.println("Ready"); // Tells us Lampy is ready to party!
+  Serial.print("Running mode: ");
+  Serial.println(state);
+
+  // Clear the last power off timestamp (will be set again when we detect power loss)
+  preferences.putULong("lastPowerOff", 0);
 }
 
 // ===== MAIN PROGRAM LOOP =====
 void loop()
 {
-  // Handle web server requests
-  server.handleClient();
+  // Process WiFi manager (non-blocking)
+  wifiManager.process();
+
+  // Check if WiFi just connected and start mDNS if needed
+  if (WiFi.status() == WL_CONNECTED && !wifiConnected)
+  {
+    wifiConnected = true;
+    Serial.println("\nWiFi connected!");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+    Serial.print("Connected to: ");
+    Serial.println(WiFi.SSID());
+
+    if (!mdnsStarted)
+    {
+      startMDNS();
+      mdnsStarted = true;
+    }
+  }
+  else if (WiFi.status() != WL_CONNECTED && wifiConnected)
+  {
+    wifiConnected = false;
+    Serial.println("WiFi disconnected");
+  }
+
+  // Handle web server requests (only if WiFi is connected)
+  if (wifiConnected)
+  {
+    server.handleClient();
+  }
+
+  // Periodically save timestamp for power cycle detection
+  unsigned long currentMillis = millis();
+  if (currentMillis - lastPowerTimestampSave >= TIMESTAMP_SAVE_INTERVAL)
+  {
+    preferences.putULong("lastPowerOff", currentMillis);
+    lastPowerTimestampSave = currentMillis;
+  }
 
   // Note: ESP32-C3 mDNS doesn't need manual update() calls
 
@@ -766,6 +833,14 @@ void matrix(int dropSpeed, int fadeSpeed, int newDropChance)
   }
 }
 
+// Callback to keep LEDs running during WiFi config
+void configModeCallback(WiFiManager *myWiFiManager)
+{
+  Serial.println("Entered config mode - keeping LEDs alive!");
+  Serial.println(WiFi.softAPIP());
+  Serial.println(myWiFiManager->getConfigPortalSSID());
+}
+
 // ===== WIFI SETUP =====
 void setupWiFi()
 {
@@ -788,24 +863,36 @@ void setupWiFi()
   wifiManager.setTitle("Hello, I'm Lampy!");
   wifiManager.setHostname("lampy");
 
-  // Try to connect with saved credentials, or start config portal
-  if (!wifiManager.autoConnect("Hello, I am Lampy!"))
+  // Set callback for AP mode (when hosting "Hello, I am Lampy!" network)
+  wifiManager.setAPCallback(configModeCallback);
+
+  // Set config portal blocking to false - this allows LEDs to keep running
+  wifiManager.setConfigPortalBlocking(false);
+
+  // Start non-blocking WiFi connection
+  if (wifiManager.autoConnect("Hello, I am Lampy!"))
   {
-    Serial.println("I could not connect to your WiFi; let me restart really quick!");
-    // Reset and try again, or put device to sleep
-    ESP.restart();
-    delay(1000);
+    // If we get here immediately, WiFi is already connected
+    Serial.println("");
+    Serial.println("I have WiFi!");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+    Serial.print("Connected to: ");
+    Serial.println(WiFi.SSID());
+
+    // Start mDNS service
+    startMDNS();
   }
+  else
+  {
+    // WiFi manager is running in non-blocking mode
+    Serial.println("WiFi setup running in background - LEDs will keep animating!");
+  }
+}
 
-  // If we get here, WiFi is connected
-  Serial.println("");
-  Serial.println("I have WiFi!");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-  Serial.print("Connected to: ");
-  Serial.println(WiFi.SSID());
-
-  // Start mDNS service so users can access via lampy.local
+// Helper function to start mDNS
+void startMDNS()
+{
   Serial.println("Starting mDNS service...");
   if (MDNS.begin("lampy"))
   {
@@ -1133,6 +1220,7 @@ void handleUpdate()
       if (newSpeed >= 1 && newSpeed <= 10)
       {
         cycleSpeed = newSpeed;
+        preferences.putInt("cycleSpeed", cycleSpeed); // Save speed to preferences
       }
     }
 

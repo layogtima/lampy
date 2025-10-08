@@ -74,15 +74,15 @@ Adafruit_NeoPixel strip(LED_COUNT, LED_PIN, NEO_GRB + NEO_KHZ800); // Our LED st
 
 // ===== GLOBAL VARIABLES (Our Toolbox) =====
 // Think of these like settings we can change anytime:
-unsigned long previousMillis = 0;           // This is like a stopwatch to help control timing
-const long interval = 10;                   // How often we update our patterns (in milliseconds)
-int state = 0;                              // Which light pattern we're showing (like choosing a TV channel)
-int brightness = 175;                       // How bright our lights are (0 = off, 255 = super bright!; caution: super bright colors will seem washed out compared to the less brighter ones)
-int currentBrightness = 50;                 // Keeps track of current brightness while fading
-unsigned long lastPowerTimestampSave = 0;   // Last time we saved the power-on timestamp
+unsigned long previousMillis = 0;                   // This is like a stopwatch to help control timing
+const long interval = 10;                           // How often we update our patterns (in milliseconds)
+int state = 0;                                      // Which light pattern we're showing (like choosing a TV channel)
+int brightness = 175;                               // How bright our lights are (0 = off, 255 = super bright!; caution: super bright colors will seem washed out compared to the less brighter ones)
+int currentBrightness = 50;                         // Keeps track of current brightness while fading
+unsigned long lastPowerTimestampSave = 0;           // Last time we saved the power-on timestamp
 const unsigned long TIMESTAMP_SAVE_INTERVAL = 1000; // Save timestamp every second
-bool wifiConnected = false;                 // Track WiFi connection status
-bool mdnsStarted = false;                   // Track if mDNS has been started
+bool wifiConnected = false;                         // Track WiFi connection status
+bool mdnsStarted = false;                           // Track if mDNS has been started
 
 // ===== CONFIGURABLE PATTERN COLORS =====
 // These can be changed in real-time via the API
@@ -105,21 +105,24 @@ void setup()
   // This is like getting dressed in the morning - we do it once when we start
   Serial.begin(115200); // Starts communication with our computer
 
-  preferences.begin("lampy", false);                  // Opens Lampy's diary to remember settings
+  preferences.begin("lampy", false); // Opens Lampy's diary to remember settings
 
   // Power cycle mode switching
   unsigned long lastPowerOff = preferences.getULong("lastPowerOff", 0);
   powerOnTime = millis();
 
   // If powered on within 3 seconds of last power off, cycle to next mode
-  if (lastPowerOff > 0 && (powerOnTime < POWER_CYCLE_WINDOW || lastPowerOff > (UINT32_MAX - POWER_CYCLE_WINDOW))) {
+  if (lastPowerOff > 0 && (powerOnTime < POWER_CYCLE_WINDOW || lastPowerOff > (UINT32_MAX - POWER_CYCLE_WINDOW)))
+  {
     Serial.println("Power cycle detected! Switching to next mode...");
     state = preferences.getInt("state", 0);
     state = (state + 1) % 8; // Cycle through modes 0-7
     preferences.putInt("state", state);
     Serial.print("New mode: ");
     Serial.println(state);
-  } else {
+  }
+  else
+  {
     state = preferences.getInt("state", 0); // Use last saved mode
   }
 
@@ -1505,49 +1508,49 @@ void setDefaultColorsForMode(int mode)
   switch (mode)
   {
   case 0:                                           // Fire
-    patternColors[0] = hexStringToColor("#ff4500"); // Orange red
-    patternColors[1] = hexStringToColor("#ff6600"); // Orange
-    patternColors[2] = hexStringToColor("#ff8800"); // Light orange
+    patternColors[0] = hexStringToColor("#cc4400"); // Blood Orange
+    patternColors[1] = hexStringToColor("#ff4500"); // Lava
+    patternColors[2] = hexStringToColor("#ffaa00"); // Amber
     break;
-  case 1:                                           // Shooting Stars (Purple)
-    patternColors[0] = hexStringToColor("#ff00ff"); // Magenta
-    patternColors[1] = hexStringToColor("#8800ff"); // Purple
-    patternColors[2] = hexStringToColor("#4400ff"); // Deep purple
+  case 1:                                           // Shooting Stars
+    patternColors[0] = hexStringToColor("#8800ff"); // Purple
+    patternColors[1] = hexStringToColor("#8800ff");
+    patternColors[2] = hexStringToColor("#8800ff");
     break;
   case 2:                                           // Rainbow
-    patternColors[0] = hexStringToColor("#ff0000"); // Red
-    patternColors[1] = hexStringToColor("#00ff00"); // Green
-    patternColors[2] = hexStringToColor("#0000ff"); // Blue
+    patternColors[0] = hexStringToColor("#ff0000"); // Pure Red
+    patternColors[1] = hexStringToColor("#00ff00"); // Lime
+    patternColors[2] = hexStringToColor("#0044ff"); // Royal Blue
     break;
-  case 3:                                           // Fireflies (Amber)
-    patternColors[0] = hexStringToColor("#ffb400"); // Amber
-    patternColors[1] = hexStringToColor("#ff9900"); // Orange amber
-    patternColors[2] = hexStringToColor("#ff7700"); // Deep amber
+  case 3:                                           // Fireflies
+    patternColors[0] = hexStringToColor("#ffd700"); // Gold
+    patternColors[1] = hexStringToColor("#ffd700");
+    patternColors[2] = hexStringToColor("#ffd700");
     break;
   case 4:                                           // Aster Field
-    patternColors[0] = hexStringToColor("#ec5602"); // Deep yellow
-    patternColors[1] = hexStringToColor("#5518dd"); // Purple
-    patternColors[2] = hexStringToColor("#290849"); // Violet
+    patternColors[0] = hexStringToColor("#6600ff"); // Violet
+    patternColors[1] = hexStringToColor("#8800ff"); // Purple
+    patternColors[2] = hexStringToColor("#ffd700"); // Gold
     break;
   case 5:                                           // Ocean Waves
-    patternColors[0] = hexStringToColor("#0000ff"); // Deep blue
-    patternColors[1] = hexStringToColor("#00ff8c"); // Cyan
-    patternColors[2] = hexStringToColor("#008cff"); // Sky blue
+    patternColors[0] = hexStringToColor("#0044ff"); // Royal Blue
+    patternColors[1] = hexStringToColor("#0088aa"); // Ocean
+    patternColors[2] = hexStringToColor("#00ffff"); // Aqua
     break;
   case 6:                                           // Radioactive Kelp
-    patternColors[0] = hexStringToColor("#46ff00"); // Lime
-    patternColors[1] = hexStringToColor("#00ff00"); // Bright green
-    patternColors[2] = hexStringToColor("#00ff3c"); // Mint green
+    patternColors[0] = hexStringToColor("#00ff00"); // Lime
+    patternColors[1] = hexStringToColor("#00ff7f"); // Spring Green
+    patternColors[2] = hexStringToColor("#aaff00"); // Chartreuse
     break;
-  case 7:                                           // Mandarin Trees
-    patternColors[0] = hexStringToColor("#d13528"); // Deep orange
-    patternColors[1] = hexStringToColor("#067333"); // Foliage
-    patternColors[2] = hexStringToColor("#034e23"); // Arbor green
+  case 7:                                           // Mandarin Grove
+    patternColors[0] = hexStringToColor("#ff4500"); // Lava
+    patternColors[1] = hexStringToColor("#ff8800"); // Tangerine
+    patternColors[2] = hexStringToColor("#00ff7f"); // Spring Green
     break;
   default:
-    patternColors[0] = hexStringToColor("#ffffff"); // White
-    patternColors[1] = hexStringToColor("#ffffff"); // White
-    patternColors[2] = hexStringToColor("#ffffff"); // White
+    patternColors[0] = hexStringToColor("#ff4500"); // Default to Lava
+    patternColors[1] = hexStringToColor("#ff4500");
+    patternColors[2] = hexStringToColor("#ff4500");
   }
 }
 

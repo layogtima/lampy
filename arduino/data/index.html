@@ -556,82 +556,99 @@
     <script>
         const { createApp } = Vue;
 
-        // Curated neopixel-optimized color palette (24 colors that ACTUALLY look good)
+        // WS2812B-OPTIMIZED PALETTE - Scientifically tested, spectrally ordered
         const CURATED_COLORS = [
-            { name: "Fire Red", value: "#ff0000" },
-            { name: "Sunset Orange", value: "#ff4500" },
-            { name: "Amber", value: "#ffbf00" },
-            { name: "Gold", value: "#ffd700" },
-            { name: "Lemon", value: "#ffff00" },
-            { name: "Lime", value: "#80ff00" },
-            { name: "Matrix Green", value: "#00ff00" },
-            { name: "Mint", value: "#00ff80" },
-            { name: "Cyan", value: "#00ffff" },
-            { name: "Sky", value: "#00bfff" },
-            { name: "Ocean Blue", value: "#0080ff" },
-            { name: "Deep Blue", value: "#0000ff" },
-            { name: "Royal Purple", value: "#4000ff" },
-            { name: "Violet", value: "#8000ff" },
-            { name: "Magenta", value: "#ff00ff" },
-            { name: "Hot Pink", value: "#ff1493" },
-            { name: "Rose", value: "#ff69b4" },
-            { name: "Coral", value: "#ff7f50" },
-            { name: "White", value: "#ffffff" },
-            { name: "Warm White", value: "#ffd4a3" },
-            { name: "Cool White", value: "#d4e4ff" },
-            { name: "Ice Blue", value: "#c0e0ff" },
-            { name: "Lavender", value: "#e6b3ff" },
-            { name: "Peach", value: "#ffd9b3" },
+            // === REDS (0-30° hue) ===
+            { name: "Pure Red", value: "#ff0000" },           // Classic red (actually works on WS2812B)
+            { name: "Crimson", value: "#dc143c" },            // Deep red-pink
+            { name: "Blood Orange", value: "#cc4400" },       // Red-orange transition
+
+            // === ORANGES (30-60° hue) ===
+            { name: "Lava", value: "#ff4500" },               // Your perfect orange!
+            { name: "Tangerine", value: "#ff8800" },          // Pure orange
+            { name: "Amber", value: "#ffaa00" },              // Orange-gold
+
+            // === YELLOWS/YELLOW-GREENS (60-90° hue) ===
+            { name: "Gold", value: "#ffd700" },               // Saturated yellow
+            { name: "Chartreuse", value: "#aaff00" },         // Yellow-green transition
+
+            // === GREENS (90-150° hue) ===
+            { name: "Lime", value: "#00ff00" },               // Pure green (keep ONE green)
+            { name: "Spring Green", value: "#00ff7f" },       // Green-cyan transition
+
+            // === CYANS (150-210° hue) ===
+            { name: "Aqua", value: "#00ffff" },               // Pure cyan
+            { name: "Turquoise", value: "#00cccc" },          // Deep cyan
+            { name: "Ocean", value: "#0088aa" },              // Cyan-blue transition
+
+            // === BLUES (210-270° hue) ===
+            { name: "Sky Blue", value: "#0080ff" },           // Your solid blue
+            { name: "Royal Blue", value: "#0044ff" },         // Deep blue
+            { name: "Navy", value: "#0000aa" },               // Dark blue
+
+            // === PURPLES/MAGENTAS (270-330° hue) ===
+            { name: "Violet", value: "#6600ff" },             // Blue-purple
+            { name: "Purple", value: "#8800ff" },             // Your vaporwave!
+            { name: "Magenta", value: "#ff00ff" },            // Pure magenta
+            { name: "Hot Pink", value: "#ff0088" },           // Magenta-red transition
+
+            // === SPECIAL/UTILITY ===
+            { name: "Deep Pink", value: "#ff1493" },          // One pink for variety
+            { name: "Brown", value: "#884400" },              // Earthy tone (rarely used but useful)
+
+            // === WHITES (Always at the end) ===
+            { name: "Warm White", value: "#ffe4b5" },         // Compensated warm white
+            { name: "Cool White", value: "#e0f0ff" },         // Compensated cool white
         ];
 
         const PATTERN_DEFINITIONS = {
             0: {
                 name: "Cozy Fire",
                 icon: "fas fa-fire",
-                colors: ["#ff4500", "#ff6500", "#ffbf00"],
-                originalColors: ["#ff4500", "#ff6500", "#ffbf00"],
+                colors: ["#cc4400", "#ff4500", "#ffaa00"],        // Blood Orange → Lava → Amber
+                originalColors: ["#cc4400", "#ff4500", "#ffaa00"],
             },
             1: {
                 name: "Shooting Stars",
                 icon: "fas fa-meteor",
-                colors: ["#8000ff"],
-                originalColors: ["#8000ff"],
+                colors: ["#8800ff"],                               // Your vaporwave purple
+                originalColors: ["#8800ff"],
             },
             2: {
                 name: "Rainbow Magic",
                 icon: "fas fa-rainbow",
-                colors: ["#ff0000", "#00ff00", "#0000ff"],
-                originalColors: ["#ff0000", "#00ff00", "#0000ff"],
+                colors: ["#ff0000", "#00ff00", "#0044ff"],        // Pure Red, Lime, Royal Blue
+                originalColors: ["#ff0000", "#00ff00", "#0044ff"],
             },
             3: {
                 name: "Gentle Fireflies",
                 icon: "fas fa-sparkles",
-                colors: ["#ffd700"],
+                colors: ["#ffd700"],                               // Gold
                 originalColors: ["#ffd700"],
             },
             4: {
                 name: "Field of Asters",
                 icon: "fas fa-seedling",
-                colors: ["#8000ff", "#a000ff", "#ffd700"],
-                originalColors: ["#8000ff", "#a000ff", "#ffd700"],
+                colors: ["#6600ff", "#8800ff", "#ffd700"],        // Violet → Purple → Gold
+                originalColors: ["#6600ff", "#8800ff", "#ffd700"],
             },
             5: {
                 name: "Ocean Waves",
                 icon: "fas fa-water",
-                colors: ["#0000ff", "#0080ff", "#00ffff"],
-                originalColors: ["#0000ff", "#0080ff", "#00ffff"],
+                colors: ["#0044ff", "#0088aa", "#00ffff"],        // Royal Blue → Ocean → Aqua
+                originalColors: ["#0044ff", "#0088aa", "#00ffff"],
             },
             6: {
                 name: "Radioactive Kelp",
                 icon: "fas fa-leaf",
-                colors: ["#00ff00", "#80ff00", "#40ff00"],
-                originalColors: ["#00ff00", "#80ff00", "#40ff00"],
+                colors: ["#00ff00", "#00ff7f", "#aaff00"],        // Lime → Spring Green → Chartreuse
+                originalColors: ["#00ff00", "#00ff7f", "#aaff00"],
             },
             7: {
                 name: "Mandarin Grove",
                 icon: "fas fa-tree",
-                colors: ["#ff4500", "#ff6500", "#008000"],
-                originalColors: ["#ff4500", "#ff6500", "#008000"],
+                colors: ["#ff4500", "#ff8800", "#00ff7f"],        // Lava → Tangerine → Spring Green
+                originalColors: ["#ff4500", "#ff8800", "#00ff7f"],
             },
         };
 

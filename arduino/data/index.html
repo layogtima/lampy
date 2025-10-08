@@ -260,6 +260,11 @@
                                     <div class="text-center mt-1 text-xs font-semibold">{{ index + 1 }}</div>
                                 </div>
                             </div>
+                            <button @click="randomizeColors"
+                                class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white hover:scale-105 transition-all text-sm"
+                                title="Randomize Colors">
+                                <i class="fas fa-dice"></i>
+                            </button>
                             <button @click="resetColors"
                                 class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white hover:scale-105 transition-all text-sm">
                                 <i class="fas fa-undo"></i>
@@ -395,6 +400,11 @@
                                 :style="{ backgroundColor: color }">
                                 {{ index + 1 }}
                             </button>
+                            <button @click="randomizeColors"
+                                class="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white flex-shrink-0"
+                                title="Randomize Colors">
+                                <i class="fas fa-dice text-xs"></i>
+                            </button>
                             <button @click="resetColors"
                                 class="w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 flex items-center justify-center hover:bg-lampy-accent hover:text-white flex-shrink-0">
                                 <i class="fas fa-undo text-xs"></i>
@@ -472,8 +482,9 @@
                             class="mt-3 p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
                             <!-- Update Password Section -->
                             <div>
-                                <label class="block text-xs font-semibold mb-2 text-gray-600 dark:text-gray-400">Update
-                                    WiFi Password</label>
+                                <label class="block text-xs font-semibold mb-2 text-gray-600 dark:text-gray-400">
+                                    Update WiFi Password
+                                </label>
                                 <div class="flex gap-2">
                                     <div class="flex-1 relative">
                                         <input v-model="wifiStatus.password" :type="showPassword ? 'text' : 'password'"
@@ -492,7 +503,8 @@
                                     </button>
                                 </div>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    <i class="fas fa-info-circle mr-1"></i>Update the password for {{ wifiStatus.ssid }}
+                                    <i class="fas fa-info-circle mr-1"></i>
+                                    Update the password for {{ wifiStatus.ssid }}
                                 </p>
                             </div>
 
@@ -500,7 +512,8 @@
                                 <div
                                     class="p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded text-xs mb-2">
                                     <p class="font-semibold text-orange-800 dark:text-orange-400 mb-1">
-                                        <i class="fas fa-exclamation-triangle mr-1"></i>Forget WiFi Network
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                                        Forget WiFi Network
                                     </p>
                                     <p class="text-orange-700 dark:text-orange-300">
                                         Clear saved WiFi credentials and reconnect to a different network. Lampy will
@@ -854,13 +867,38 @@
                     }
                 },
 
+                randomizeColors() {
+                    if (!this.currentPattern) return;
+
+                    // Create a copy of the curated colors array to avoid modifying the original
+                    const availableColors = [...this.curatedColors];
+                    const numColors = this.currentPattern.colors.length;
+                    const newColors = [];
+
+                    // Randomly select colors for each slot
+                    for (let i = 0; i < numColors; i++) {
+                        const randomIndex = Math.floor(Math.random() * availableColors.length);
+                        newColors.push(availableColors[randomIndex].value);
+
+                        // Remove the selected color to avoid duplicates (optional)
+                        // availableColors.splice(randomIndex, 1);
+                    }
+
+                    this.currentPattern.colors = newColors;
+                    this.applySettingsLive();
+                },
+
                 async updateWifiSettings() {
                     if (!this.wifiStatus.password || this.wifiStatus.password.trim() === "") {
                         alert("Please enter a valid password");
                         return;
                     }
 
-                    if (!confirm(`Update WiFi password for "${this.wifiStatus.ssid}"?\n\nLampy will restart and reconnect to the network.`)) {
+                    if (
+                        !confirm(
+                            `Update WiFi password for "${this.wifiStatus.ssid}"?\n\nLampy will restart and reconnect to the network.`
+                        )
+                    ) {
                         return;
                     }
 
@@ -885,7 +923,11 @@
                 },
 
                 async forgetWifi() {
-                    if (!confirm("Are you sure you want to forget the WiFi network?\n\nLampy will restart and you'll need to reconnect to \"Hello, I am Lampy!\" to set up WiFi again.")) {
+                    if (
+                        !confirm(
+                            'Are you sure you want to forget the WiFi network?\n\nLampy will restart and you\'ll need to reconnect to "Hello, I am Lampy!" to set up WiFi again.'
+                        )
+                    ) {
                         return;
                     }
                     try {
@@ -894,7 +936,9 @@
                             headers: { "Content-Type": "application/json" },
                         });
                         if (response.ok) {
-                            alert("WiFi credentials cleared! Lampy is restarting...\n\nConnect to \"Hello, I am Lampy!\" WiFi network to set up a new connection.");
+                            alert(
+                                'WiFi credentials cleared! Lampy is restarting...\n\nConnect to "Hello, I am Lampy!" WiFi network to set up a new connection.'
+                            );
                             this.connectionStatus = "offline";
                         }
                     } catch (error) {

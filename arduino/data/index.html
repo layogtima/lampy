@@ -170,13 +170,9 @@
         bottom: 0;
         left: 0;
         right: 0;
-        max-height: 40vh;
+        max-height: 50vh;
         transform: translateY(0);
         transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      }
-
-      .mobile-drawer.collapsed {
-        transform: translateY(calc(100% - 60px));
       }
 
       .drawer-handle {
@@ -449,7 +445,7 @@
         <!-- Swipe-Up Drawer -->
         <div
           :class="{ 'collapsed': drawerCollapsed }"
-          class="mobile-drawer bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 rounded-t-3xl shadow-2xl overflow-hidden"
+          class="mobile-drawer pb-6 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 rounded-t-3xl shadow-2xl overflow-hidden"
         >
           <div @click="drawerCollapsed = !drawerCollapsed" class="p-0 cursor-pointer">
             <div class="drawer-handle"></div>
@@ -458,7 +454,7 @@
             </div>
           </div>
 
-          <div v-show="!drawerCollapsed" class="p-4 space-y-4 overflow-y-auto" style="max-height: calc(40vh - 80px)">
+          <div v-show="!drawerCollapsed" class="px-4 space-y-4 overflow-y-auto" style="max-height: calc(40vh - 80px)">
             <!-- Patterns Carousel -->
             <div>
               <h3 class="text-xs font-bold mb-3 text-gray-500 dark:text-gray-400 uppercase tracking-widest">

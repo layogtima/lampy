@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Lampy v5</title>
+    <title>Lampy v6 - WINAMP MODE 🎵</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
@@ -33,12 +33,14 @@
                         "spiral-reverse": "spiralReverse 20s linear infinite",
                         "pulse-led": "pulseLed 2s ease-in-out infinite",
                         "slide-up": "slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+                        "bass-hit": "bassHit 0.15s ease-out",
                     },
                     keyframes: {
                         spiral: { "0%": { transform: "rotateY(0deg)" }, "100%": { transform: "rotateY(360deg)" } },
                         spiralReverse: { "0%": { transform: "rotateY(360deg)" }, "100%": { transform: "rotateY(0deg)" } },
                         pulseLed: { "0%, 100%": { opacity: "0.8" }, "50%": { opacity: "1" } },
                         slideUp: { "0%": { transform: "translateY(100%)" }, "100%": { transform: "translateY(0)" } },
+                        bassHit: { "0%": { transform: "scale(1)" }, "50%": { transform: "scale(1.1)" }, "100%": { transform: "scale(1)" } },
                     },
                 },
             },
@@ -69,7 +71,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Vertical Sliders - Properly Centered & Themed */
+        /* Vertical Sliders */
         input[type="range"].vertical-slider {
             writing-mode: vertical-lr;
             direction: rtl;
@@ -116,7 +118,7 @@
             transform-style: preserve-3d;
         }
 
-        /* Copper Tube - 10% Opacity (Ghost Mode) */
+        /* Copper Tube */
         .copper-tube {
             display: none;
             background: linear-gradient(180deg,
@@ -145,7 +147,7 @@
             border-radius: 3px;
             background: #333333;
             border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.2s ease;
+            transition: all 0.05s ease;
             box-shadow: 0 0 3px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
             transform: rotateY(0deg) !important;
         }
@@ -156,9 +158,14 @@
             border-radius: 2px;
             background: #333333;
             border: 0.5px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.2s ease;
+            transition: all 0.05s ease;
             box-shadow: 0 0 2px rgba(0, 0, 0, 0.3), inset 0 0.5px 1px rgba(255, 255, 255, 0.4);
             transform: rotateY(0deg) !important;
+        }
+
+        /* Spectrum Visualizer */
+        .spectrum-bar {
+            transition: height 0.05s ease-out;
         }
 
         /* Mobile Control Drawer */
@@ -188,9 +195,27 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
-        /* Hide scrollbar */
         .hide-scrollbar::-webkit-scrollbar {
             display: none;
+        }
+
+        /* Music Mode Indicator */
+        .music-active-ring {
+            animation: pulse-ring 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-ring {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -198,7 +223,7 @@
 <body class="min-h-screen bg-lampy-cream dark:bg-lampy-dark text-lampy-dark dark:text-lampy-cream">
     <div id="app">
         <!-- Floating Buttons -->
-        <div class="fixed top-4 left-4 lg:right-4 lg:left-auto z-50">
+        <div class="fixed top-4 left-4 lg:right-4 lg:left-auto z-50 flex gap-2">
             <button @click="showSettings = true"
                 class="w-14 h-14 rounded-full glass-effect flex items-center justify-center shadow-lg hover:scale-105 hover:bg-lampy-accent hover:text-white transition-all duration-300">
                 <svg viewBox="0 0 200 200" class="w-8 h-8 animate-spin-slow">
@@ -212,6 +237,15 @@
                     </g>
                     <circle cx="100" cy="100" r="15" fill="#FF6B35" />
                 </svg>
+            </button>
+
+            <!-- MUSIC MODE TOGGLE -->
+            <button @click="toggleMusicMode"
+                class="w-14 h-14 rounded-full glass-effect flex items-center justify-center shadow-lg hover:scale-105 transition-all duration-300 relative"
+                :class="musicMode ? 'bg-red-600 text-white' : 'hover:bg-lampy-accent hover:text-white'">
+                <i :class="musicMode ? 'fas fa-microphone-slash' : 'fas fa-microphone'" class="text-lg"></i>
+                <div v-if="musicMode" class="absolute inset-0 rounded-full border-4 border-red-400 music-active-ring">
+                </div>
             </button>
         </div>
 
@@ -228,25 +262,70 @@
             <div
                 class="w-80 h-full bg-gray-50 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 overflow-y-auto">
                 <div class="p-6 space-y-8">
-                    <!-- Patterns -->
+
+                    <!-- MUSIC MODE SECTION -->
+                    <div v-if="musicMode"
+                        class="bg-gradient-to-br from-red-500/10 to-purple-500/10 border-2 border-red-500/30 rounded-xl p-4">
+                        <h3
+                            class="text-xs font-bold mb-3 text-red-600 dark:text-red-400 uppercase tracking-widest flex items-center gap-2">
+                            <i class="fas fa-music"></i>
+                            Music Visualizer
+                        </h3>
+
+                        <!-- Visualization Mode Selector -->
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <button v-for="mode in musicModes" :key="mode.id" @click="selectMusicMode(mode)"
+                                :class="{ 'bg-red-600 text-white border-red-600': currentMusicMode?.id === mode.id }"
+                                class="aspect-square bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:scale-105 transition-all duration-200 flex flex-col items-center justify-center shadow-sm hover:shadow-md text-[10px] font-bold">
+                                <i :class="mode.icon" class="text-lg mb-1"></i>
+                                <span>{{ mode.name }}</span>
+                            </button>
+                        </div>
+
+                        <!-- Sensitivity Slider -->
+                        <div class="mb-3">
+                            <label class="text-xs font-semibold mb-1 block">Sensitivity</label>
+                            <input v-model="musicSensitivity" type="range" min="1" max="10"
+                                class="w-full accent-red-600" />
+                            <div class="flex justify-between text-[10px] text-gray-500 mt-1">
+                                <span>Chill</span>
+                                <span>{{ musicSensitivity }}</span>
+                                <span>BASS CANNON</span>
+                            </div>
+                        </div>
+
+                        <!-- Live Spectrum Visualizer -->
+                        <div class="bg-black/20 rounded-lg p-3">
+                            <div class="flex items-end justify-between gap-1 h-16">
+                                <div v-for="(bar, i) in spectrumBars" :key="i"
+                                    class="flex-1 bg-gradient-to-t from-red-600 to-purple-500 rounded-t spectrum-bar"
+                                    :style="{ height: bar + '%' }"></div>
+                            </div>
+                            <div class="text-center text-[10px] text-gray-400 mt-1">LIVE AUDIO</div>
+                        </div>
+                    </div>
+
+                    <!-- Standard Patterns -->
                     <div>
                         <h3 class="text-xs font-bold mb-4 text-gray-500 dark:text-gray-400 uppercase tracking-widest">
-                            Patterns
+                            {{ musicMode ? 'Standard Patterns (Paused)' : 'Patterns' }}
                         </h3>
-                        <div class="grid grid-cols-4 gap-2">
-                            <button v-for="pattern in patterns" :key="pattern.id" @click="selectPattern(pattern)"
-                                :class="{ 'border-black dark:border-white border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id }"
-                                class="aspect-square bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:scale-105 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md">
+                        <div class="grid grid-cols-4 gap-2" :class="{ 'opacity-50': musicMode }">
+                            <button v-for="pattern in patterns" :key="pattern.id"
+                                @click="!musicMode && selectPattern(pattern)"
+                                :class="{ 'border-black dark:border-white border-2 bg-lampy-accent/10': currentPattern?.id === pattern.id && !musicMode }"
+                                class="aspect-square bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg hover:scale-105 transition-all duration-200 flex items-center justify-center shadow-sm hover:shadow-md"
+                                :disabled="musicMode">
                                 <i :class="pattern.icon" class="text-xl"
-                                    :class="currentPattern?.id === pattern.id ? 'text-lampy-accent' : ''"></i>
+                                    :class="currentPattern?.id === pattern.id && !musicMode ? 'text-lampy-accent' : ''"></i>
                             </button>
                         </div>
                     </div>
 
                     <div class="border-t border-gray-200 dark:border-gray-800"></div>
 
-                    <!-- Color Palette (Curated) -->
-                    <div v-if="currentPattern">
+                    <!-- Color Palette -->
+                    <div v-if="currentPattern && !musicMode">
                         <h3 class="text-xs font-bold mb-4 text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                             Pattern Colors
                         </h3>
@@ -278,7 +357,7 @@
             <div class="flex-1 flex items-center justify-center bg-white dark:bg-gray-800 relative"
                 style="perspective: 1200px">
                 <!-- Left Slider - Brightness -->
-                <div class="absolute left-8 flex flex-col items-center gap-3 z-100">
+                <div class="absolute left-8 flex flex-col items-center gap-3 z-100" v-if="!musicMode">
                     <span
                         class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest transform -rotate-90 origin-center mb-12">
                         Brightness
@@ -300,15 +379,15 @@
                         <div v-for="i in 72" :key="i" class="absolute w-3 h-3" :style="getLEDPosition(i)"
                             style="transform-style: preserve-3d">
                             <div class="animate-spiral-reverse h-full">
-                                <div class="led-light" :style="getLEDColor(i)"
-                                    :class="{ 'animate-pulse-led': getLEDIntensity(i) > 0.7 }"></div>
+                                <div class="led-light" :style="musicMode ? getMusicLEDColor(i) : getLEDColor(i)"
+                                    :class="{ 'animate-pulse-led': !musicMode && getLEDIntensity(i) > 0.7 }"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Right Slider - Speed -->
-                <div class="absolute right-8 flex flex-col items-center gap-3 z-100">
+                <div class="absolute right-8 flex flex-col items-center gap-3 z-100" v-if="!musicMode">
                     <span
                         class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest transform -rotate-90 origin-center mb-4">
                         Speed
@@ -321,14 +400,15 @@
             </div>
         </div>
 
-        <!-- Mobile Layout - LED Showcase First -->
+        <!-- Mobile Layout -->
         <div class="lg:hidden h-screen flex flex-col relative">
-            <!-- LED Showcase - 70% of screen -->
+            <!-- LED Showcase -->
             <div @click="drawerCollapsed = true"
                 class="flex-1 bg-white dark:bg-gray-800 flex items-center justify-center relative"
                 style="perspective: 800px">
-                <!-- Minimal Vertical Sliders -->
-                <div class="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
+                <!-- Minimal Vertical Sliders (hidden in music mode) -->
+                <div v-if="!musicMode"
+                    class="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
                     <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wide">BRI</span>
                     <input v-model="brightness" type="range" min="1" max="100"
                         class="vertical-slider accent-lampy-accent" style="height: 180px; width: 6px" />
@@ -345,14 +425,15 @@
                         <div v-for="i in 72" :key="i" class="absolute w-2.5 h-2.5" :style="getLEDPositionMobile(i)"
                             style="transform-style: preserve-3d">
                             <div class="animate-spiral-reverse h-full">
-                                <div class="led-light-mobile" :style="getLEDColor(i)"
-                                    :class="{ 'animate-pulse-led': getLEDIntensity(i) > 0.7 }"></div>
+                                <div class="led-light-mobile" :style="musicMode ? getMusicLEDColor(i) : getLEDColor(i)"
+                                    :class="{ 'animate-pulse-led': !musicMode && getLEDIntensity(i) > 0.7 }"></div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
+                <div v-if="!musicMode"
+                    class="absolute right-6 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2">
                     <span class="text-[8px] font-bold text-gray-500 uppercase tracking-wide">SPD</span>
                     <input v-model="speed" type="range" min="1" max="10" class="vertical-slider accent-lampy-accent"
                         style="height: 180px; width: 6px" />
@@ -372,8 +453,40 @@
 
                 <div v-show="!drawerCollapsed" class="p-4 space-y-4 overflow-y-auto"
                     style="max-height: calc(40vh - 80px)">
+
+                    <!-- MUSIC MODE MOBILE -->
+                    <div v-if="musicMode"
+                        class="bg-gradient-to-br from-red-500/10 to-purple-500/10 border-2 border-red-500/30 rounded-xl p-3">
+                        <h3 class="text-xs font-bold mb-2 text-red-600 dark:text-red-400 uppercase tracking-widest">🎵
+                            Music Mode</h3>
+
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <button v-for="mode in musicModes" :key="mode.id" @click="selectMusicMode(mode)"
+                                :class="{ 'bg-red-600 text-white': currentMusicMode?.id === mode.id }"
+                                class="aspect-square bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex flex-col items-center justify-center text-[8px] font-bold">
+                                <i :class="mode.icon" class="text-sm mb-1"></i>
+                                <span>{{ mode.name.split(' ')[0] }}</span>
+                            </button>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="text-[10px] font-semibold mb-1 block">Sensitivity: {{ musicSensitivity
+                                }}</label>
+                            <input v-model="musicSensitivity" type="range" min="1" max="10"
+                                class="w-full accent-red-600" />
+                        </div>
+
+                        <div class="bg-black/20 rounded-lg p-2">
+                            <div class="flex items-end justify-between gap-1 h-12">
+                                <div v-for="(bar, i) in spectrumBars" :key="i"
+                                    class="flex-1 bg-gradient-to-t from-red-600 to-purple-500 rounded-t spectrum-bar"
+                                    :style="{ height: bar + '%' }"></div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Patterns Carousel -->
-                    <div>
+                    <div v-if="!musicMode">
                         <h3 class="text-xs font-bold mb-3 text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                             Patterns
                         </h3>
@@ -389,7 +502,7 @@
                     </div>
 
                     <!-- Pattern Colors -->
-                    <div v-if="currentPattern">
+                    <div v-if="currentPattern && !musicMode">
                         <h3 class="text-xs font-bold mb-3 text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                             Colors</h3>
                         <div class="flex items-center gap-2">
@@ -480,7 +593,6 @@
 
                         <div v-if="showWifiCredentials"
                             class="mt-3 p-4 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
-                            <!-- Update Password Section -->
                             <div>
                                 <label class="block text-xs font-semibold mb-2 text-gray-600 dark:text-gray-400">
                                     Update WiFi Password
@@ -502,10 +614,6 @@
                                         Update
                                     </button>
                                 </div>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                    <i class="fas fa-info-circle mr-1"></i>
-                                    Update the password for {{ wifiStatus.ssid }}
-                                </p>
                             </div>
 
                             <div class="border-t border-gray-200 dark:border-gray-700 pt-3">
@@ -566,564 +674,7 @@
         </div>
     </div>
 
-    <script>
-        const { createApp } = Vue;
-
-        // WS2812B-OPTIMIZED PALETTE - Scientifically tested, spectrally ordered
-        const CURATED_COLORS = [
-            // === REDS (0-30° hue) ===
-            { name: "Pure Red", value: "#ff0000" },           // Classic red (actually works on WS2812B)
-            { name: "Crimson", value: "#dc143c" },            // Deep red-pink
-            { name: "Blood Orange", value: "#cc4400" },       // Red-orange transition
-
-            // === ORANGES (30-60° hue) ===
-            { name: "Lava", value: "#ff4500" },               // Your perfect orange!
-            { name: "Tangerine", value: "#ff8800" },          // Pure orange
-            { name: "Amber", value: "#ffaa00" },              // Orange-gold
-
-            // === YELLOWS/YELLOW-GREENS (60-90° hue) ===
-            { name: "Gold", value: "#ffd700" },               // Saturated yellow
-            { name: "Chartreuse", value: "#aaff00" },         // Yellow-green transition
-
-            // === GREENS (90-150° hue) ===
-            { name: "Lime", value: "#00ff00" },               // Pure green (keep ONE green)
-            { name: "Spring Green", value: "#00ff7f" },       // Green-cyan transition
-
-            // === CYANS (150-210° hue) ===
-            { name: "Aqua", value: "#00ffff" },               // Pure cyan
-            { name: "Turquoise", value: "#00cccc" },          // Deep cyan
-            { name: "Ocean", value: "#0088aa" },              // Cyan-blue transition
-
-            // === BLUES (210-270° hue) ===
-            { name: "Sky Blue", value: "#0080ff" },           // Your solid blue
-            { name: "Royal Blue", value: "#0044ff" },         // Deep blue
-            { name: "Navy", value: "#0000aa" },               // Dark blue
-
-            // === PURPLES/MAGENTAS (270-330° hue) ===
-            { name: "Violet", value: "#6600ff" },             // Blue-purple
-            { name: "Purple", value: "#8800ff" },             // Your vaporwave!
-            { name: "Magenta", value: "#ff00ff" },            // Pure magenta
-            { name: "Hot Pink", value: "#ff0088" },           // Magenta-red transition
-
-            // === SPECIAL/UTILITY ===
-            { name: "Deep Pink", value: "#ff1493" },          // One pink for variety
-            { name: "Brown", value: "#884400" },              // Earthy tone (rarely used but useful)
-
-            // === WHITES (Always at the end) ===
-            { name: "Warm White", value: "#ffe4b5" },         // Compensated warm white
-            { name: "Cool White", value: "#e0f0ff" },         // Compensated cool white
-        ];
-
-        const PATTERN_DEFINITIONS = {
-            0: {
-                name: "Cozy Fire",
-                icon: "fas fa-fire",
-                colors: ["#cc4400", "#ff4500", "#ffaa00"],        // Blood Orange → Lava → Amber
-                originalColors: ["#cc4400", "#ff4500", "#ffaa00"],
-            },
-            1: {
-                name: "Shooting Stars",
-                icon: "fas fa-meteor",
-                colors: ["#8800ff"],                               // Your vaporwave purple
-                originalColors: ["#8800ff"],
-            },
-            2: {
-                name: "Rainbow Magic",
-                icon: "fas fa-rainbow",
-                colors: ["#ff0000", "#00ff00", "#0044ff"],        // Pure Red, Lime, Royal Blue
-                originalColors: ["#ff0000", "#00ff00", "#0044ff"],
-            },
-            3: {
-                name: "Gentle Fireflies",
-                icon: "fas fa-sparkles",
-                colors: ["#ffd700"],                               // Gold
-                originalColors: ["#ffd700"],
-            },
-            4: {
-                name: "Field of Asters",
-                icon: "fas fa-seedling",
-                colors: ["#6600ff", "#8800ff", "#ffd700"],        // Violet → Purple → Gold
-                originalColors: ["#6600ff", "#8800ff", "#ffd700"],
-            },
-            5: {
-                name: "Ocean Waves",
-                icon: "fas fa-water",
-                colors: ["#0044ff", "#0088aa", "#00ffff"],        // Royal Blue → Ocean → Aqua
-                originalColors: ["#0044ff", "#0088aa", "#00ffff"],
-            },
-            6: {
-                name: "Radioactive Kelp",
-                icon: "fas fa-leaf",
-                colors: ["#00ff00", "#00ff7f", "#aaff00"],        // Lime → Spring Green → Chartreuse
-                originalColors: ["#00ff00", "#00ff7f", "#aaff00"],
-            },
-            7: {
-                name: "Mandarin Grove",
-                icon: "fas fa-tree",
-                colors: ["#ff4500", "#ff8800", "#00ff7f"],        // Lava → Tangerine → Spring Green
-                originalColors: ["#ff4500", "#ff8800", "#00ff7f"],
-            },
-        };
-
-        createApp({
-            data() {
-                return {
-                    isDark:
-                        localStorage.theme === "dark" ||
-                        (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches),
-                    showSettings: false,
-                    showWifiCredentials: false,
-                    showPassword: false,
-                    drawerCollapsed: true,
-                    connectionStatus: "connecting",
-                    currentPattern: null,
-                    brightness: 75,
-                    speed: 5,
-                    time: 0,
-                    patterns: [],
-                    curatedColors: CURATED_COLORS,
-                    selectedColorSlot: 0,
-                    colorPickerOpen: false,
-                    colorPickerPosition: {},
-                    wifiStatus: { ssid: "Loading...", password: "" },
-                    deviceInfo: { hardware: "ESP32-C3", ledCount: "72" },
-                    liveUpdateTimeout: null,
-                    animationId: null,
-                    connectionInterval: null,
-                    cachedLEDPositions: [],
-                    cachedLEDPositionsMobile: [],
-                };
-            },
-
-            mounted() {
-                this.patterns = Object.entries(PATTERN_DEFINITIONS).map(([id, pattern]) => ({
-                    id: parseInt(id),
-                    ...pattern,
-                }));
-                this.applyTheme();
-                this.initializeLampy();
-                this.precalculateLEDPositions();
-                this.startAnimationLoop();
-                this.checkConnection();
-                this.currentPattern = this.patterns[0];
-                window.addEventListener("beforeunload", () => this.beforeUnmount());
-            },
-
-            methods: {
-                applyTheme() {
-                    document.documentElement.classList.toggle("dark", this.isDark);
-                    localStorage.theme = this.isDark ? "dark" : "light";
-                },
-
-                toggleTheme() {
-                    this.isDark = !this.isDark;
-                    this.applyTheme();
-                },
-
-                async initializeLampy() {
-                    try {
-                        const response = await fetch("/api/status");
-                        if (response.ok) {
-                            const status = await response.json();
-                            const foundPattern = this.patterns.find((p) => p.id === status.current_mode);
-                            if (foundPattern) {
-                                this.currentPattern = foundPattern;
-                                // Load saved colors from ESP32 (can be 1 or 3 colors depending on mode)
-                                if (status.current_colors && status.current_colors.length > 0) {
-                                    this.currentPattern.colors = [...status.current_colors];
-                                }
-                            }
-                            this.brightness = Math.round((status.brightness / 255) * 100);
-                            this.speed = status.speed || 5;
-
-                            // Load WiFi SSID if available
-                            if (status.wifi_ssid) {
-                                this.wifiStatus.ssid = status.wifi_ssid;
-                            }
-
-                            this.connectionStatus = "connected";
-                        } else {
-                            this.connectionStatus = "offline";
-                        }
-                    } catch (error) {
-                        this.connectionStatus = "offline";
-                        this.currentPattern = this.patterns[0];
-                    }
-                },
-
-                checkConnection() {
-                    this.connectionInterval = setInterval(async () => {
-                        try {
-                            const controller = new AbortController();
-                            const timeoutId = setTimeout(() => controller.abort(), 3000);
-                            const response = await fetch("/api/status", { signal: controller.signal });
-                            clearTimeout(timeoutId);
-                            this.connectionStatus = response.ok ? "connected" : "offline";
-                        } catch (error) {
-                            this.connectionStatus = "offline";
-                        }
-                    }, 10000);
-                },
-
-                async selectPattern(pattern) {
-                    // First, just change the mode without sending colors
-                    try {
-                        const response = await fetch("/api/update", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                pattern: pattern.id,
-                                brightness: Math.floor(this.brightness * 2.55),
-                                params: { cycleSpeed: this.speed },
-                            }),
-                        });
-
-                        if (response.ok) {
-                            // Fetch the current colors from ESP32 for this pattern
-                            const statusResponse = await fetch("/api/status");
-                            if (statusResponse.ok) {
-                                const status = await statusResponse.json();
-                                if (status.current_colors) {
-                                    // Update the pattern object with saved colors BEFORE setting currentPattern
-                                    // This prevents watchers from triggering with stale default colors
-                                    pattern.colors = [...status.current_colors];
-                                }
-                            }
-                        }
-                    } catch (error) {
-                        console.error("Error switching pattern:", error);
-                    }
-
-                    // Set currentPattern AFTER colors are updated from ESP32
-                    this.currentPattern = pattern;
-                },
-
-                getSpeedLabel(speed) {
-                    if (speed <= 3) return "Slow";
-                    if (speed <= 6) return "Medium";
-                    return "Fast";
-                },
-
-                openColorPicker(slotIndex, event) {
-                    this.selectedColorSlot = slotIndex;
-                    this.colorPickerOpen = true;
-
-                    // Calculate popover position
-                    const button = event.target.closest("button");
-                    const chosenColorsContainer = button.closest(".chosen-colors");
-
-                    // Use the container if it exists (desktop), otherwise use the button's parent (mobile)
-                    const containerElement = chosenColorsContainer || button.parentElement;
-                    const rect = containerElement.getBoundingClientRect();
-                    const popoverWidth = 320;
-                    const popoverHeight = 200;
-
-                    // Calculate available space above and below
-                    const spaceAbove = rect.top;
-                    const spaceBelow = window.innerHeight - rect.bottom;
-
-                    // Position based on available space
-                    let top;
-                    if (spaceBelow >= popoverHeight + 10 || spaceBelow > spaceAbove) {
-                        // Position below if there's enough space or more space below than above
-                        top = rect.bottom + 10;
-                    } else {
-                        // Position above
-                        top = rect.top - popoverHeight - 10;
-                    }
-
-                    // Center horizontally relative to the container
-                    let left = rect.left + rect.width / 2 - popoverWidth / 2;
-
-                    // Keep within viewport horizontally
-                    if (left < 10) {
-                        left = 10;
-                    } else if (left + popoverWidth > window.innerWidth - 10) {
-                        left = window.innerWidth - popoverWidth - 10;
-                    }
-
-                    this.colorPickerPosition = {
-                        top: `${top}px`,
-                        left: `${left}px`,
-                    };
-                },
-
-                closeColorPicker() {
-                    this.colorPickerOpen = false;
-                },
-
-                applyColorToSlot(colorValue) {
-                    if (!this.currentPattern) return;
-                    this.currentPattern.colors[this.selectedColorSlot] = colorValue;
-                    this.applySettingsLive();
-                    this.closeColorPicker();
-                },
-
-                resetColors() {
-                    if (this.currentPattern?.originalColors) {
-                        this.currentPattern.colors = [...this.currentPattern.originalColors];
-                        this.selectedColorSlot = 0;
-                        this.applySettingsLive();
-                    }
-                },
-
-                randomizeColors() {
-                    if (!this.currentPattern) return;
-
-                    // Create a copy of the curated colors array to avoid modifying the original
-                    const availableColors = [...this.curatedColors];
-                    const numColors = this.currentPattern.colors.length;
-                    const newColors = [];
-
-                    // Randomly select colors for each slot
-                    for (let i = 0; i < numColors; i++) {
-                        const randomIndex = Math.floor(Math.random() * availableColors.length);
-                        newColors.push(availableColors[randomIndex].value);
-
-                        // Remove the selected color to avoid duplicates (optional)
-                        // availableColors.splice(randomIndex, 1);
-                    }
-
-                    this.currentPattern.colors = newColors;
-                    this.applySettingsLive();
-                },
-
-                async updateWifiSettings() {
-                    if (!this.wifiStatus.password || this.wifiStatus.password.trim() === "") {
-                        alert("Please enter a valid password");
-                        return;
-                    }
-
-                    if (
-                        !confirm(
-                            `Update WiFi password for "${this.wifiStatus.ssid}"?\n\nLampy will restart and reconnect to the network.`
-                        )
-                    ) {
-                        return;
-                    }
-
-                    try {
-                        const response = await fetch("/api/wifi", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ ssid: this.wifiStatus.ssid, password: this.wifiStatus.password }),
-                        });
-                        if (response.ok) {
-                            alert("WiFi password updated! Lampy is restarting...\n\nPlease wait a moment for Lampy to reconnect.");
-                            this.connectionStatus = "offline";
-                            this.showWifiCredentials = false;
-                            this.showSettings = false;
-                            this.wifiStatus.password = "";
-                        } else {
-                            alert("Failed to update WiFi settings. Please try again.");
-                        }
-                    } catch (error) {
-                        alert("Failed to update WiFi settings. Please check your connection.");
-                    }
-                },
-
-                async forgetWifi() {
-                    if (
-                        !confirm(
-                            'Are you sure you want to forget the WiFi network?\n\nLampy will restart and you\'ll need to reconnect to "Hello, I am Lampy!" to set up WiFi again.'
-                        )
-                    ) {
-                        return;
-                    }
-                    try {
-                        const response = await fetch("/api/wifi-reset", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                        });
-                        if (response.ok) {
-                            alert(
-                                'WiFi credentials cleared! Lampy is restarting...\n\nConnect to "Hello, I am Lampy!" WiFi network to set up a new connection.'
-                            );
-                            this.connectionStatus = "offline";
-                        }
-                    } catch (error) {
-                        alert("WiFi reset initiated. Lampy is restarting...");
-                    }
-                },
-
-                precalculateLEDPositions() {
-                    const totalLEDs = 72;
-                    const tubeHeight = 500,
-                        tubeRadius = 60;
-                    const tubeHeightMobile = 340,
-                        tubeRadiusMobile = 40;
-
-                    this.cachedLEDPositions = [];
-                    for (let i = 1; i <= totalLEDs; i++) {
-                        const progress = (i - 1) / (totalLEDs - 1);
-                        const angle = progress * Math.PI * 17;
-                        const height = progress * tubeHeight;
-                        const x = Math.cos(angle) * tubeRadius;
-                        const z = Math.sin(angle) * tubeRadius;
-                        this.cachedLEDPositions.push({
-                            position: "absolute",
-                            left: "50%",
-                            top: "8%",
-                            transform: `translate3d(${x}px, ${height}px, ${z}px) translate(-50%, -50%)`,
-                        });
-                    }
-
-                    this.cachedLEDPositionsMobile = [];
-                    for (let i = 1; i <= totalLEDs; i++) {
-                        const progress = (i - 1) / (totalLEDs - 1);
-                        const angle = progress * Math.PI * 12;
-                        const height = progress * tubeHeightMobile;
-                        const x = Math.cos(angle) * tubeRadiusMobile;
-                        const z = Math.sin(angle) * tubeRadiusMobile;
-                        this.cachedLEDPositionsMobile.push({
-                            position: "absolute",
-                            left: "50%",
-                            top: "8%",
-                            transform: `translate3d(${x}px, ${height}px, ${z}px) translate(-50%, -50%)`,
-                        });
-                    }
-                },
-
-                getLEDPosition(ledIndex) {
-                    return this.cachedLEDPositions[ledIndex - 1] || {};
-                },
-
-                getLEDPositionMobile(ledIndex) {
-                    return this.cachedLEDPositionsMobile[ledIndex - 1] || {};
-                },
-
-                getLEDColor(ledIndex) {
-                    if (!this.currentPattern) return { backgroundColor: "#333333", opacity: 0.3 };
-
-                    const pattern = this.currentPattern;
-                    const colors = pattern.colors || [];
-                    const time = this.time * 0.001;
-                    const speed = this.speed / 10;
-                    const brightness = this.brightness / 100;
-
-                    let color, intensity;
-
-                    switch (pattern.id) {
-                        case 0: // Fire
-                            const fireBase =
-                                Math.sin(time * speed * 3 + ledIndex * 0.2) * Math.cos(time * speed * 2 + ledIndex * 0.15);
-                            const fireFlicker = Math.random() * 0.3;
-                            const fireIntensity = Math.max(0, (fireBase + fireFlicker) * 0.5 + 0.4);
-                            const fireColorIndex = Math.min(Math.floor(fireIntensity * colors.length), colors.length - 1);
-                            color = colors[fireColorIndex] || "#ff4500";
-                            intensity = brightness * (0.3 + fireIntensity * 0.7);
-                            break;
-
-                        case 1: // Shooting Stars
-                            const meteorLength = 15;
-                            const meteorSpeed = speed * 4;
-                            const meteorPos = ((time * meteorSpeed) % (72 + meteorLength * 2)) - meteorLength;
-                            const distanceFromMeteor = Math.abs(ledIndex - meteorPos);
-                            intensity =
-                                distanceFromMeteor < meteorLength
-                                    ? brightness * Math.max(0, 1 - distanceFromMeteor / meteorLength)
-                                    : 0;
-                            color = colors[0] || "#8000ff";
-                            break;
-
-                        case 2: // Rainbow
-                            const rainbowPos = (time * speed + ledIndex * 0.08) % 1;
-                            const rainbowColorIndex = Math.floor(rainbowPos * colors.length);
-                            color = colors[rainbowColorIndex] || "#ff0000";
-                            intensity = brightness * (0.8 + Math.sin(time * speed * 2 + ledIndex * 0.1) * 0.2);
-                            break;
-
-                        case 3: // Fireflies
-                            const sparkChance = 0.01;
-                            const isNewSpark = Math.random() < sparkChance;
-                            const pulseBase = Math.sin(time * speed + ledIndex * 0.3) * 0.5 + 0.5;
-                            const sparkleMultiplier = isNewSpark ? 2 : 1;
-                            intensity = brightness * pulseBase * sparkleMultiplier * 0.6;
-                            color = colors[Math.floor(Math.random() * colors.length)] || "#ffd700";
-                            break;
-
-                        default: // Waves
-                            const wavePhase = time * speed + ledIndex * 0.1;
-                            const wave1 = Math.sin(wavePhase) * 0.5 + 0.5;
-                            const wave2 = Math.sin(wavePhase * 0.7 + Math.PI / 3) * 0.3 + 0.5;
-                            const combinedWave = (wave1 + wave2) / 2;
-                            const waveColorIndex = Math.floor(combinedWave * colors.length);
-                            color = colors[Math.min(waveColorIndex, colors.length - 1)] || "#00ff00";
-                            intensity = brightness * (0.4 + combinedWave * 0.6);
-                            break;
-                    }
-
-                    return {
-                        backgroundColor: color,
-                        opacity: Math.max(0.2, Math.min(1, intensity)),
-                        boxShadow: intensity > 0.6 ? `0 0 8px ${color}66` : "none",
-                    };
-                },
-
-                getLEDIntensity(ledIndex) {
-                    return parseFloat(this.getLEDColor(ledIndex).opacity) || 0;
-                },
-
-                applySettingsLive() {
-                    clearTimeout(this.liveUpdateTimeout);
-                    this.liveUpdateTimeout = setTimeout(() => this.sendToLampy(), 100);
-                },
-
-                async sendToLampy() {
-                    if (!this.currentPattern) return;
-                    const settings = {
-                        pattern: this.currentPattern.id,
-                        brightness: Math.floor(this.brightness * 2.55),
-                        speed: this.speed,
-                        colors: this.currentPattern.colors || [],
-                        timestamp: Date.now(),
-                    };
-
-                    if (this.connectionStatus === "connected") {
-                        try {
-                            await fetch("/api/update", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify(settings),
-                            });
-                        } catch (error) {
-                            console.error("Connection error:", error);
-                        }
-                    }
-                },
-
-                startAnimationLoop() {
-                    let lastFrameTime = 0;
-                    const frameInterval = 1000 / 60;
-                    const animate = (currentTime) => {
-                        if (currentTime - lastFrameTime >= frameInterval) {
-                            this.time = currentTime;
-                            lastFrameTime = currentTime;
-                        }
-                        this.animationId = requestAnimationFrame(animate);
-                    };
-                    this.animationId = requestAnimationFrame(animate);
-                },
-            },
-
-            watch: {
-                brightness() {
-                    this.applySettingsLive();
-                },
-                speed() {
-                    this.applySettingsLive();
-                },
-            },
-
-            beforeUnmount() {
-                if (this.animationId) cancelAnimationFrame(this.animationId);
-                if (this.connectionInterval) clearInterval(this.connectionInterval);
-                if (this.liveUpdateTimeout) clearTimeout(this.liveUpdateTimeout);
-                this.cachedLEDPositions = [];
-                this.cachedLEDPositionsMobile = [];
-            },
-        }).mount("#app");
-    </script>
+    <script src="script.js"></script>
 </body>
 
 </html>
